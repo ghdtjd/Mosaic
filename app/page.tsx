@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { useAuth } from "@/context/auth-context";
 import {
   Umbrella,
   Sun,
@@ -34,6 +36,10 @@ import {
   Eye,
   Layers,
   Flame,
+  LogIn,
+  UserPlus,
+  LogOut,
+  User,
 } from "lucide-react";
 
 // Preset routes for demo
@@ -322,6 +328,8 @@ const INITIAL_REPORTS: CommunityReport[] = [
 ];
 
 export default function Home() {
+  const { user, profile, signOut } = useAuth();
+
   // Active states
   const [selectedRouteId, setSelectedRouteId] = useState<string>("shinjuku-tochomae");
   const [selectedCityFilter, setSelectedCityFilter] = useState<string>("all");
@@ -374,6 +382,9 @@ export default function Home() {
     e.preventDefault();
     if (!newReportText.trim() || !newReportLocation.trim()) return;
 
+    const authorName =
+      profile?.name || user?.email?.split("@")[0] || "지하탐험가 (나)";
+
     const newRep: CommunityReport = {
       id: `rep-${Date.now()}`,
       city: "도쿄",
@@ -385,7 +396,7 @@ export default function Home() {
       content: newReportText,
       timeAgo: "방금 전",
       upvotes: 1,
-      author: "지하탐험가 (나)",
+      author: authorName,
     };
 
     setReports([newRep, ...reports]);
@@ -480,17 +491,59 @@ export default function Home() {
           </a>
         </nav>
 
-        {/* Action Button */}
+        {/* Action Buttons: Auth & App Register */}
         <div className="flex items-center gap-3">
-          <a
-            href="#preregister"
-            className="relative group overflow-hidden px-4 py-2 rounded-xl font-medium text-xs sm:text-sm bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600 text-white shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
-          >
-            <span className="relative z-10 flex items-center gap-1.5">
-              <Smartphone className="w-4 h-4" />
-              앱 사전 등록
-            </span>
-          </a>
+          {user ? (
+            <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5">
+                <div className="w-6 h-6 rounded-full bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 font-bold text-xs flex items-center justify-center">
+                  {(profile?.name || user.email || "U")[0].toUpperCase()}
+                </div>
+                <div className="text-left hidden sm:block">
+                  <div className="text-xs font-semibold text-white leading-none truncate max-w-[90px]">
+                    {profile?.name || user.email?.split("@")[0]}
+                  </div>
+                  <div className="text-[10px] text-cyan-400 font-mono capitalize">
+                    {profile?.provider || "회원"}
+                  </div>
+                </div>
+                <button
+                  onClick={() => signOut()}
+                  title="로그아웃"
+                  className="p-1 text-slate-400 hover:text-rose-400 transition ml-1"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <a
+                href="#preregister"
+                className="hidden lg:flex relative group overflow-hidden px-3.5 py-2 rounded-xl font-medium text-xs bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600 text-white shadow-md shadow-cyan-500/25 hover:shadow-cyan-500/40 transition"
+              >
+                <span className="relative z-10 flex items-center gap-1.5">
+                  <Smartphone className="w-3.5 h-3.5" />
+                  앱 사전 등록
+                </span>
+              </a>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Link
+                href="/login"
+                className="px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-900/80 transition border border-transparent hover:border-slate-800 flex items-center gap-1.5"
+              >
+                <LogIn className="w-3.5 h-3.5 text-cyan-400" />
+                로그인
+              </Link>
+              <Link
+                href="/signup"
+                className="px-3.5 py-2 rounded-xl font-semibold text-xs bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 shadow-md shadow-cyan-500/20 transition flex items-center gap-1.5"
+              >
+                <UserPlus className="w-3.5 h-3.5" />
+                회원가입
+              </Link>
+            </div>
+          )}
         </div>
       </header>
 
