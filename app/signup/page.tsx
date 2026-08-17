@@ -124,25 +124,25 @@ function SignupFormContent() {
     <div className="sm:mx-auto sm:w-full sm:max-w-md px-4">
       {/* Brand Header */}
       <div className="text-center">
-        <Link href="/" className="inline-flex items-center justify-center">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-xl shadow-cyan-500/25 ring-1 ring-white/20 mb-3">
-            <Footprints className="w-6 h-6 text-white transform -rotate-12" />
+        <Link href="/" className="inline-flex items-center justify-center group">
+          <div className="w-14 h-14 rounded-2xl bg-amber-400 border-2 border-zinc-900 flex items-center justify-center shadow-[3px_3px_0px_#18181b] group-hover:rotate-6 transition mb-3">
+            <Footprints className="w-7 h-7 text-zinc-950" />
           </div>
         </Link>
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-          치카미치 회원가입
+        <h2 className="text-3xl font-extrabold text-zinc-950 font-jua tracking-normal">
+          치카미치 회원가입 ✨
         </h2>
-        <p className="mt-2 text-xs sm:text-sm text-slate-400">
-          일본 도심 지하 통로 커뮤니티 & 맞춤 경로 설정
+        <p className="mt-1 text-xs sm:text-sm text-zinc-600 font-medium">
+          나만의 지하 꿀루트 등록 & 주간 랭킹 도전하기
         </p>
       </div>
 
       {/* Success message banner */}
       {successMessage && (
-        <div className="mt-6 p-4 rounded-xl bg-emerald-950/90 border border-emerald-500/50 text-emerald-300 text-xs sm:text-sm flex items-start gap-3">
-          <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+        <div className="mt-5 p-4 rounded-2xl bg-emerald-100 border-2 border-zinc-900 text-emerald-950 text-xs sm:text-sm font-bold flex items-start gap-3">
+          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
           <div>
-            <strong className="block font-bold text-white mb-0.5">안내</strong>
+            <strong className="block mb-0.5">안내</strong>
             {successMessage}
           </div>
         </div>
@@ -150,14 +150,14 @@ function SignupFormContent() {
 
       {/* Error message */}
       {errorMessage && (
-        <div className="mt-6 p-3.5 rounded-xl bg-rose-950/80 border border-rose-500/40 text-rose-300 text-xs flex items-center gap-2.5">
-          <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+        <div className="mt-5 p-3.5 rounded-2xl bg-rose-100 border-2 border-zinc-900 text-rose-950 text-xs font-bold flex items-center gap-2.5">
+          <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
           <span>{errorMessage}</span>
         </div>
       )}
 
       {/* Signup Form Card */}
-      <div className="mt-6 bg-slate-900/80 py-8 px-5 sm:px-8 border border-slate-800/90 shadow-2xl rounded-2xl backdrop-blur-xl">
+      <div className="mt-5 cute-card bg-white py-8 px-6 sm:px-8">
         {/* Social Signups: Google & LINE */}
         <div className="space-y-3">
           {/* Google OAuth Button */}
@@ -165,10 +165,10 @@ function SignupFormContent() {
             type="button"
             onClick={handleGoogleSignup}
             disabled={oauthLoading !== null || isSubmitting}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-slate-700 hover:border-slate-500 rounded-xl bg-slate-950/70 hover:bg-slate-950 text-slate-100 text-sm font-semibold transition shadow-sm hover:shadow active:scale-[0.99] disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 border-2 border-zinc-900 rounded-2xl bg-white hover:bg-zinc-50 text-zinc-900 text-sm font-bold shadow-[2px_2px_0px_#18181b] active:scale-98 transition disabled:opacity-50"
           >
             {oauthLoading === "google" ? (
-              <Loader2 className="w-5 h-5 text-cyan-400 animate-spin" />
+              <Loader2 className="w-5 h-5 text-amber-500 animate-spin" />
             ) : (
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
@@ -197,7 +197,7 @@ function SignupFormContent() {
             type="button"
             onClick={handleLineSignup}
             disabled={oauthLoading !== null || isSubmitting}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl bg-[#06C755] hover:bg-[#05b34c] text-white text-sm font-semibold transition shadow-md shadow-[#06C755]/20 hover:shadow-[#06C755]/40 active:scale-[0.99] disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-2xl border-2 border-zinc-900 bg-[#06C755] hover:bg-[#05b34c] text-white text-sm font-bold shadow-[2px_2px_0px_#18181b] active:scale-98 transition disabled:opacity-50"
           >
             {oauthLoading === "line" ? (
               <Loader2 className="w-5 h-5 text-white animate-spin" />
@@ -217,10 +217,10 @@ function SignupFormContent() {
         {/* Divider */}
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-slate-800" />
+            <div className="w-full border-t-2 border-zinc-200" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-slate-900 px-3 text-slate-500 font-mono">
+            <span className="bg-white px-3 text-zinc-500 font-bold">
               또는 직접 입력하여 가입
             </span>
           </div>
@@ -231,12 +231,12 @@ function SignupFormContent() {
           <div>
             <label
               htmlFor="name"
-              className="block text-xs font-semibold text-slate-300 mb-1"
+              className="block text-xs font-bold text-zinc-900 mb-1"
             >
               닉네임 또는 이름
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500">
                 <User className="w-4 h-4" />
               </div>
               <input
@@ -245,8 +245,8 @@ function SignupFormContent() {
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="예: 신주쿠통근러"
-                className="w-full pl-10 pr-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition"
+                placeholder="예: 신주쿠길잡이"
+                className="w-full pl-10 pr-3 py-2.5 bg-[#FAF9F6] border-2 border-zinc-900 rounded-2xl text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-amber-400 font-medium transition"
               />
             </div>
           </div>
@@ -254,12 +254,12 @@ function SignupFormContent() {
           <div>
             <label
               htmlFor="email"
-              className="block text-xs font-semibold text-slate-300 mb-1"
+              className="block text-xs font-bold text-zinc-900 mb-1"
             >
               이메일 주소
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500">
                 <Mail className="w-4 h-4" />
               </div>
               <input
@@ -269,7 +269,7 @@ function SignupFormContent() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@example.com"
-                className="w-full pl-10 pr-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition"
+                className="w-full pl-10 pr-3 py-2.5 bg-[#FAF9F6] border-2 border-zinc-900 rounded-2xl text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-amber-400 font-medium transition"
               />
             </div>
           </div>
@@ -277,12 +277,12 @@ function SignupFormContent() {
           <div>
             <label
               htmlFor="password"
-              className="block text-xs font-semibold text-slate-300 mb-1"
+              className="block text-xs font-bold text-zinc-900 mb-1"
             >
               비밀번호 (6자 이상)
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500">
                 <Lock className="w-4 h-4" />
               </div>
               <input
@@ -293,7 +293,7 @@ function SignupFormContent() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-10 pr-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition"
+                className="w-full pl-10 pr-3 py-2.5 bg-[#FAF9F6] border-2 border-zinc-900 rounded-2xl text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-amber-400 font-medium transition"
               />
             </div>
           </div>
@@ -301,19 +301,19 @@ function SignupFormContent() {
           <div>
             <label
               htmlFor="city"
-              className="block text-xs font-semibold text-slate-300 mb-1"
+              className="block text-xs font-bold text-zinc-900 mb-1"
             >
-              주요 관심 도시 (맞춤 날씨 & 지하 맵 제공)
+              주요 관심 도시 (맞춤 랭킹 & 맵 우선 표시)
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500">
                 <MapPin className="w-4 h-4" />
               </div>
               <select
                 id="city"
                 value={preferredCity}
                 onChange={(e) => setPreferredCity(e.target.value)}
-                className="w-full pl-10 pr-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-slate-100 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition"
+                className="w-full pl-10 pr-3 py-2.5 bg-[#FAF9F6] border-2 border-zinc-900 rounded-2xl text-sm text-zinc-900 font-medium focus:outline-none focus:ring-2 focus:ring-amber-400 transition"
               >
                 <option value="tokyo">🗼 도쿄 (신주쿠 / 시부야 / 도쿄역)</option>
                 <option value="osaka">🏯 오사카 (우메다 던전 / 난바)</option>
@@ -331,18 +331,18 @@ function SignupFormContent() {
               type="checkbox"
               checked={agreeTerms}
               onChange={(e) => setAgreeTerms(e.target.checked)}
-              className="mt-1 h-4 w-4 rounded border-slate-800 bg-slate-950 text-cyan-500 focus:ring-cyan-500"
+              className="mt-1 h-4 w-4 rounded border-2 border-zinc-900 text-zinc-900 focus:ring-amber-400"
             />
-            <label htmlFor="terms" className="text-xs text-slate-400 leading-relaxed">
-              <span className="text-slate-300 font-medium">이용약관</span> 및{" "}
-              <span className="text-slate-300 font-medium">개인정보 처리방침</span>에 동의합니다.
+            <label htmlFor="terms" className="text-xs text-zinc-600 leading-relaxed font-medium">
+              <span className="text-zinc-950 font-bold">이용약관</span> 및{" "}
+              <span className="text-zinc-950 font-bold">개인정보 처리방침</span>에 동의합니다.
             </label>
           </div>
 
           <button
             type="submit"
             disabled={isSubmitting || oauthLoading !== null}
-            className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold text-sm transition shadow-lg shadow-cyan-500/25 flex items-center justify-center gap-2 active:scale-[0.99] disabled:opacity-50"
+            className="w-full cute-btn-primary py-3 text-sm font-bold flex items-center justify-center gap-2 mt-2 disabled:opacity-50"
           >
             {isSubmitting ? (
               <>
@@ -359,12 +359,12 @@ function SignupFormContent() {
         </form>
 
         {/* Switch to Login */}
-        <div className="mt-6 pt-5 border-t border-slate-800/80 text-center">
-          <p className="text-xs text-slate-400">
+        <div className="mt-6 pt-5 border-t-2 border-zinc-100 text-center">
+          <p className="text-xs text-zinc-600">
             이미 계정이 있으신가요?{" "}
             <Link
               href={`/login${returnTo !== "/" ? `?returnTo=${encodeURIComponent(returnTo)}` : ""}`}
-              className="font-bold text-cyan-400 hover:text-cyan-300 underline underline-offset-4 ml-1 transition"
+              className="font-bold text-amber-700 hover:text-amber-800 underline underline-offset-4 ml-1 transition"
             >
               로그인하기
             </Link>
@@ -373,9 +373,9 @@ function SignupFormContent() {
       </div>
 
       {/* Trust Badges */}
-      <div className="mt-8 text-center text-slate-500 text-xs flex items-center justify-center gap-4">
+      <div className="mt-6 text-center text-zinc-500 text-xs flex items-center justify-center gap-3 font-medium">
         <span className="flex items-center gap-1">
-          <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" /> InsForge 보안 인증
+          <ShieldCheck className="w-3.5 h-3.5 text-zinc-700" /> InsForge 보안 인증
         </span>
         <span>•</span>
         <span>안전한 OAuth 2.0 PKCE 인증</span>
@@ -386,16 +386,12 @@ function SignupFormContent() {
 
 export default function SignupPage() {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative underground-grid overflow-hidden">
-      {/* Background glow effects */}
-      <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 w-[700px] h-[450px] bg-gradient-to-b from-cyan-600/20 via-blue-600/10 to-transparent blur-[140px] rounded-full" />
-      <div className="pointer-events-none absolute -bottom-40 left-10 w-[500px] h-[500px] bg-indigo-500/10 blur-[150px] rounded-full" />
-
+    <div className="min-h-screen bg-[#FAF9F6] text-zinc-900 cute-dots flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden font-sans">
       {/* Top back button */}
       <div className="max-w-md w-full mx-auto px-4 mb-6">
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-cyan-400 transition"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-zinc-700 hover:text-zinc-950 transition"
         >
           <ChevronLeft className="w-4 h-4" />
           CHIKAMICHI 홈으로 돌아가기
@@ -405,8 +401,8 @@ export default function SignupPage() {
       <Suspense
         fallback={
           <div className="sm:mx-auto sm:w-full sm:max-w-md px-4 text-center">
-            <Loader2 className="w-8 h-8 text-cyan-400 animate-spin mx-auto mb-3" />
-            <p className="text-xs text-slate-400">회원가입 페이지 로딩 중...</p>
+            <Loader2 className="w-8 h-8 text-amber-500 animate-spin mx-auto mb-3" />
+            <p className="text-xs text-zinc-500">회원가입 페이지 로딩 중...</p>
           </div>
         }
       >

@@ -2,73 +2,131 @@
 
 @layer base {
   :root {
-    --background: #090d16;
-    --foreground: #f8fafc;
+    --background: #faf9f6;
+    --foreground: #18181b;
   }
 
   body {
-    background-color: #090d16;
-    color: #f8fafc;
+    background-color: #faf9f6;
+    color: #18181b;
+    font-family: var(--font-noto), sans-serif;
     overflow-x: hidden;
   }
 }
 
-/* Custom background pattern for underground metro vibe */
-.underground-grid {
-  background-size: 40px 40px;
+.font-jua {
+  font-family: var(--font-jua), cursive, sans-serif;
+}
+
+.font-gaegu {
+  font-family: var(--font-gaegu), cursive, sans-serif;
+}
+
+.font-noto {
+  font-family: var(--font-noto), sans-serif;
+}
+
+/* Cute paper / dot pattern background */
+.cute-dots {
+  background-image: radial-gradient(#e4e4e7 1.5px, transparent 1.5px);
+  background-size: 20px 20px;
+}
+
+.cute-grid {
+  background-size: 32px 32px;
   background-image: 
-    linear-gradient(to right, rgba(56, 189, 248, 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(56, 189, 248, 0.05) 1px, transparent 1px);
+    linear-gradient(to right, rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
 }
 
-.subtle-dots {
-  background-image: radial-gradient(rgba(148, 163, 184, 0.12) 1px, transparent 1px);
-  background-size: 24px 24px;
+/* Cute hand-drawn / pop card styling */
+.cute-card {
+  background: #ffffff;
+  border: 2px solid #18181b;
+  border-radius: 1.25rem;
+  box-shadow: 4px 4px 0px #18181b;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* Glassmorphic card styling */
-.glass-panel {
-  background: rgba(15, 23, 42, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+.cute-card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px #18181b;
 }
 
-.glass-panel-hover {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+.cute-card-active {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px #18181b;
 }
 
-.glass-panel-hover:hover {
-  background: rgba(30, 41, 59, 0.85);
-  border-color: rgba(56, 189, 248, 0.3);
-  transform: translateY(-2px);
-  box-shadow: 0 12px 30px -10px rgba(14, 165, 233, 0.2);
+.cute-btn-primary {
+  background: #facc15; /* Warm sunny yellow */
+  color: #18181b;
+  border: 2px solid #18181b;
+  border-radius: 1rem;
+  font-weight: 700;
+  box-shadow: 3px 3px 0px #18181b;
+  transition: all 0.15s ease-in-out;
 }
 
-/* Glowing accent effects */
-.glow-cyan {
-  box-shadow: 0 0 50px -10px rgba(6, 182, 212, 0.35);
+.cute-btn-primary:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0px #18181b;
+  background: #fde047;
 }
 
-.glow-amber {
-  box-shadow: 0 0 50px -10px rgba(245, 158, 11, 0.35);
+.cute-btn-primary:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px #18181b;
 }
 
-/* Custom subtle scrollbar */
+.cute-btn-secondary {
+  background: #ffffff;
+  color: #18181b;
+  border: 2px solid #18181b;
+  border-radius: 1rem;
+  font-weight: 700;
+  box-shadow: 3px 3px 0px #18181b;
+  transition: all 0.15s ease-in-out;
+}
+
+.cute-btn-secondary:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0px #18181b;
+  background: #f4f4f5;
+}
+
+.cute-btn-secondary:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px #18181b;
+}
+
+.cute-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 9999px;
+  border: 1.5px solid #18181b;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* Custom cute scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #090d16;
+  background: #faf9f6;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
-  border-radius: 4px;
+  background: #d4d4d8;
+  border-radius: 9999px;
+  border: 2px solid #faf9f6;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #a1a1aa;
 }
