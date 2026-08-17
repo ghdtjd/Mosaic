@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/auth-context";
 import {
@@ -29,6 +29,7 @@ import {
   Thermometer,
   CloudRain,
   ChevronRight,
+  ChevronLeft,
   BellRing,
   Send,
   Footprints,
@@ -51,12 +52,15 @@ import {
   Maximize2,
   X,
   Plus,
+  Trash2,
+  ImagePlus,
+  FileText,
   ThumbsUp,
   Bookmark,
 } from "lucide-react";
 
 // Visual Step for Photo/Video Guide
-interface VisualStep {
+export interface VisualStep {
   stepNumber: number;
   title: string;
   landmark: string;
@@ -68,8 +72,8 @@ interface VisualStep {
   elevator: boolean;
 }
 
-// Route Data with Photos, Video & Leaderboard Likes
-interface RouteData {
+// Route Data with Multiple Photos, Video & Leaderboard Likes
+export interface RouteData {
   id: string;
   rank: number;
   city: string;
@@ -95,6 +99,19 @@ interface RouteData {
   highlightTip: string;
 }
 
+// Editable Step structure for Multi-Photo upload form
+interface EditableStep {
+  id: string;
+  stepNumber: number;
+  title: string;
+  landmark: string;
+  description: string;
+  tip: string;
+  photoPreview: string | null;
+  indoor: boolean;
+  elevator: boolean;
+}
+
 const INITIAL_ROUTES: RouteData[] = [
   {
     id: "shinjuku-tochomae",
@@ -118,13 +135,15 @@ const INITIAL_ROUTES: RouteData[] = [
     tags: ["🌧️ 우천 100% 회피", "❄️ 에어컨 완비", "🛗 무빙워크 직통"],
     coverPhoto:
       "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=1000&q=80",
-    videoPreviewUrl: "https://assets.mixkit.co/videos/preview/mixkit-modern-subway-station-with-bright-lights-41278-large.mp4",
+    videoPreviewUrl:
+      "https://assets.mixkit.co/videos/preview/mixkit-modern-subway-station-with-bright-lights-41278-large.mp4",
     steps: [
       {
         stepNumber: 1,
-        title: "JR 신주쿠역 서쪽 지하 개찰구",
-        landmark: "노란색 '도쿄도청 방면' 표지판 확인",
-        description: "개찰구에서 나온 후 정면의 오다큐 에이스(Odakyu Ace) 지하상가 입구로 직진하세요.",
+        title: "출발: JR 신주쿠역 서쪽 지하 개찰구",
+        landmark: "노란색 '도쿄도청 방면' 천장 표지판",
+        description:
+          "서쪽 지하 개찰구를 나와 정면의 오다큐 에이스(Odakyu Ace) 지하상가 입구로 직진하세요.",
         photoUrl:
           "https://images.unsplash.com/photo-1538332576228-eb5b4c4de6f5?auto=format&fit=crop&w=800&q=80",
         photoAlt: "신주쿠역 서쪽 지하 개찰구 표지판",
@@ -134,9 +153,10 @@ const INITIAL_ROUTES: RouteData[] = [
       },
       {
         stepNumber: 2,
-        title: "신주쿠 스카이웨이 무빙워크 진입",
-        landmark: "초록색 바닥 유도선 & 280m 무빙워크",
-        description: "에어컨이 빵빵하게 나오는 280m 길이의 지하 무빙워크에 탑승하여 편안하게 이동합니다.",
+        title: "경유: 신주쿠 스카이웨이 무빙워크 진입",
+        landmark: "초록색 바닥 유도선 & 280m 무빙워크 시작점",
+        description:
+          "에어컨이 빵빵하게 나오는 280m 길이의 지하 무빙워크에 탑승하여 비를 완전히 피해 이동합니다.",
         photoUrl:
           "https://images.unsplash.com/photo-1517649763962-0c623266ddc0?auto=format&fit=crop&w=800&q=80",
         photoAlt: "신주쿠 지하 무빙워크 통로",
@@ -146,13 +166,14 @@ const INITIAL_ROUTES: RouteData[] = [
       },
       {
         stepNumber: 3,
-        title: "도쿄도청 제1본청사 B1F 게이트 도착",
-        landmark: "도청사 지하 로비 및 안내데스크",
-        description: "무빙워크 끝에서 바로 연결되는 도청사 지하 자동문으로 들어가면 젖지 않고 도착 완료!",
+        title: "도착: 도쿄도청 제1본청사 B1F 게이트",
+        landmark: "도청사 지하 로비 및 전망대 직통 E/V 게이트",
+        description:
+          "무빙워크 끝에서 바로 연결되는 도청사 지하 자동문으로 들어가면 비 한 방울 안 묻고 도착 완료!",
         photoUrl:
           "https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&w=800&q=80",
-        photoAlt: "도쿄도청사 입구",
-        tip: "전망대 전용 엘리베이터도 지하 1층 로비에서 바로 탑승 가능합니다.",
+        photoAlt: "도쿄도청사 지하 입구",
+        tip: "무료 전망대 전용 엘리베이터도 지하 1층 로비에서 바로 탑승 가능합니다.",
         indoor: true,
         elevator: true,
       },
@@ -185,9 +206,10 @@ const INITIAL_ROUTES: RouteData[] = [
     steps: [
       {
         stepNumber: 1,
-        title: "JR 오사카역 중앙 지하 B1F 출구",
+        title: "출발: JR 오사카역 중앙 지하 B1F 출구",
         landmark: "사우스 게이트 빌딩 연결 통로",
-        description: "계단 또는 엘리베이터를 이용해 B1F로 내려와 화이티 우메다(Whity Umeda) 방향으로 꺾습니다.",
+        description:
+          "계단 또는 엘리베이터를 이용해 B1F로 내려와 화이티 우메다(Whity Umeda) 방향으로 꺾습니다.",
         photoUrl:
           "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?auto=format&fit=crop&w=800&q=80",
         photoAlt: "오사카역 지하 연결부",
@@ -197,9 +219,10 @@ const INITIAL_ROUTES: RouteData[] = [
       },
       {
         stepNumber: 2,
-        title: "화이티 우메다 분수 광장 분기점",
-        landmark: "중앙 원형 분수대 (Water Fantasy)",
-        description: "분수 광장을 오른쪽에 두고 직진하면 디아모르 오사카(Diamor)의 원형 돔 천장이 나타납니다.",
+        title: "경유: 화이티 우메다 분수 광장 분기점",
+        landmark: "중앙 원형 분수대 (Water Fantasy 랜드마크)",
+        description:
+          "분수 광장을 오른쪽에 두고 직진하면 디아모르 오사카(Diamor)의 원형 돔 천장이 나타납니다.",
         photoUrl:
           "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80",
         photoAlt: "화이티 우메다 광장",
@@ -209,9 +232,10 @@ const INITIAL_ROUTES: RouteData[] = [
       },
       {
         stepNumber: 3,
-        title: "디아모르 오사카 & 한큐 백화점 식품관",
+        title: "도착: 디아모르 오사카 & 한큐 백화점 식품관",
         landmark: "유리 돔 채광창 & 백화점 B1F 입구",
-        description: "유럽풍 대리석 바닥을 따라 백화점 식품관 지하 게이트로 바로 진입합니다.",
+        description:
+          "유럽풍 대리석 바닥을 따라 백화점 식품관 지하 게이트로 바로 진입합니다.",
         photoUrl:
           "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=800&q=80",
         photoAlt: "한큐 백화점 지하 입구",
@@ -248,9 +272,10 @@ const INITIAL_ROUTES: RouteData[] = [
     steps: [
       {
         stepNumber: 1,
-        title: "마루노우치 지하 중앙 광장",
+        title: "출발: 마루노우치 지하 중앙 광장",
         landmark: "신마루비루(新丸ビル) 지하 연결 입구",
-        description: "붉은 벽돌 도쿄역사 지하에서 신마루빌딩 지하 통로로 단차 없이 바로 이어집니다.",
+        description:
+          "붉은 벽돌 도쿄역사 지하에서 신마루빌딩 지하 통로로 단차 없이 바로 이어집니다.",
         photoUrl:
           "https://images.unsplash.com/photo-1508807526345-15e9b5f4eaff?auto=format&fit=crop&w=800&q=80",
         photoAlt: "도쿄역 마루노우치 지하",
@@ -260,9 +285,10 @@ const INITIAL_ROUTES: RouteData[] = [
       },
       {
         stepNumber: 2,
-        title: "오테마치 지하 연결 와이드 보도",
+        title: "도착: 오테마치 지하 연결 와이드 보도",
         landmark: "치요다선 환승 복도 & 오테모리 숲 광장",
-        description: "폭 15m의 넓은 지하 회랑을 따라 오테마치 오피스 타운으로 쾌적하게 이동합니다.",
+        description:
+          "폭 15m의 넓은 지하 회랑을 따라 오테마치 오피스 타운으로 쾌적하게 이동합니다.",
         photoUrl:
           "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80",
         photoAlt: "오테마치 오피스 지하 통로",
@@ -299,9 +325,10 @@ const INITIAL_ROUTES: RouteData[] = [
     steps: [
       {
         stepNumber: 1,
-        title: "치카호 북쪽 1번 게이트",
-        landmark: "삿포로 에키마에 도리 지하보행공간",
-        description: "삿포로역 지하에서 오도리 방면으로 일직선으로 뻗은 20m 광폭 지하보도 진입.",
+        title: "출발: 치카호 북쪽 1번 게이트",
+        landmark: "삿포로 에키마에 도리 지하보행공간 시작점",
+        description:
+          "삿포로역 지하에서 오도리 방면으로 일직선으로 뻗은 20m 광폭 지하보도 진입.",
         photoUrl:
           "https://images.unsplash.com/photo-1517649763962-0c623266ddc0?auto=format&fit=crop&w=800&q=80",
         photoAlt: "치카호 지하보도 입구",
@@ -311,9 +338,10 @@ const INITIAL_ROUTES: RouteData[] = [
       },
       {
         stepNumber: 2,
-        title: "오도리역 비세(Bisse) 광장 통과",
+        title: "도착: 오도리역 비세(Bisse) 광장 통과",
         landmark: "오도리역 지하 허브 & 삿포로 TV타워 연결부",
-        description: "중간 쉼터와 카페가 밀집한 오도리 광장을 지나 스스키노 폴타운으로 직진.",
+        description:
+          "중간 쉼터와 카페가 밀집한 오도리 광장을 지나 스스키노 폴타운으로 직진.",
         photoUrl:
           "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80",
         photoAlt: "오도리역 지하 광장",
@@ -350,9 +378,10 @@ const INITIAL_ROUTES: RouteData[] = [
     steps: [
       {
         stepNumber: 1,
-        title: "텐진 지하상가 1번가 (Tenchika)",
+        title: "출발: 텐진 지하상가 1번가 (Tenchika)",
         landmark: "남유럽풍 벽돌 거리 & 스테인드글라스 조명",
-        description: "돌바닥과 클래식 조명이 인상적인 텐진 지하상가 메인 스트리트 진입.",
+        description:
+          "돌바닥과 클래식 조명이 인상적인 텐진 지하상가 메인 스트리트 진입.",
         photoUrl:
           "https://images.unsplash.com/photo-1538332576228-eb5b4c4de6f5?auto=format&fit=crop&w=800&q=80",
         photoAlt: "텐진 지하상가",
@@ -366,31 +395,70 @@ const INITIAL_ROUTES: RouteData[] = [
   },
 ];
 
+// Default 3 steps template for modal
+const DEFAULT_EDITABLE_STEPS: EditableStep[] = [
+  {
+    id: "step-1",
+    stepNumber: 1,
+    title: "출발지 개찰구 및 지하 진입로",
+    landmark: "노란색 지하철 출구 표지판 앞",
+    description: "개찰구를 나온 후 지하 연결통로 방향으로 진입하세요.",
+    tip: "지상으로 나가지 말고 B1F 유도선을 따라가세요.",
+    photoPreview: null,
+    indoor: true,
+    elevator: true,
+  },
+  {
+    id: "step-2",
+    stepNumber: 2,
+    title: "중간 경유지 / 랜드마크 분기점",
+    landmark: "중앙 분수대 또는 에어컨 쇼핑몰 연결부",
+    description: "쾌적한 냉방 구역을 거쳐 목적지 통로로 직진합니다.",
+    tip: "이 구간에서 에어컨이 가장 시원합니다.",
+    photoPreview: null,
+    indoor: true,
+    elevator: true,
+  },
+  {
+    id: "step-3",
+    stepNumber: 3,
+    title: "도착지 건물 지하 직결 게이트",
+    landmark: "목적지 빌딩 B1F 로비 자동문",
+    description: "건물 지하 입구를 통해 비를 맞지 않고 입장 완료!",
+    tip: "엘리베이터를 타고 원하는 층으로 바로 올라갈 수 있습니다.",
+    photoPreview: null,
+    indoor: true,
+    elevator: true,
+  },
+];
+
 export default function Home() {
   const { user, profile, signOut } = useAuth();
 
   // Active states
   const [routes, setRoutes] = useState<RouteData[]>(INITIAL_ROUTES);
-  const [selectedRouteId, setSelectedRouteId] = useState<string>("shinjuku-tochomae");
+  const [selectedRouteId, setSelectedRouteId] = useState<string>(
+    "shinjuku-tochomae"
+  );
   const [selectedCityFilter, setSelectedCityFilter] = useState<string>("all");
-  const [viewMode, setViewMode] = useState<"photo" | "step" | "video">("photo");
 
-  // Photo Lightbox modal
-  const [lightboxPhoto, setLightboxPhoto] = useState<{
-    url: string;
-    alt: string;
-    title: string;
-    tip: string;
-  } | null>(null);
+  // Lightbox modal with Next / Prev browsing through all route steps
+  const [activeLightboxIndex, setActiveLightboxIndex] = useState<number | null>(
+    null
+  );
 
-  // New Route Upload Modal
+  // New Route Upload Modal State
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newOrigin, setNewOrigin] = useState("");
   const [newDest, setNewDest] = useState("");
   const [newCity, setNewCity] = useState("tokyo");
-  const [newTip, setNewTip] = useState("");
-  const [newPhotoPreview, setNewPhotoPreview] = useState<string | null>(null);
+  const [newDuration, setNewDuration] = useState("6분");
+  const [newDistance, setNewDistance] = useState("480m");
+  const [newHighlightTip, setNewHighlightTip] = useState("");
+  const [editableSteps, setEditableSteps] = useState<EditableStep[]>(
+    DEFAULT_EDITABLE_STEPS
+  );
   const [uploadSuccess, setUploadSuccess] = useState(false);
 
   // FAQ state
@@ -410,14 +478,13 @@ export default function Home() {
       ? routes
       : routes.filter((r) => r.city === selectedCityFilter);
 
-  // Handle Likes / Upvote with animation
+  // Handle Likes / Upvote with dynamic leaderboard reordering
   const handleLikeRoute = (routeId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setRoutes((prev) => {
       const updated = prev.map((r) =>
         r.id === routeId ? { ...r, likes: r.likes + 1 } : r
       );
-      // Sort by likes to dynamically reflect leaderboard rankings
       return updated.sort((a, b) => b.likes - a.likes).map((item, idx) => ({
         ...item,
         rank: idx + 1,
@@ -425,25 +492,82 @@ export default function Home() {
     });
   };
 
-  // Handle Photo upload preview
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Step Management in Creator Modal
+  const handleAddStep = () => {
+    const nextNum = editableSteps.length + 1;
+    const newStep: EditableStep = {
+      id: `step-${Date.now()}`,
+      stepNumber: nextNum,
+      title: `경유지 ${nextNum - 1} / 통로 연결 구간`,
+      landmark: "지하 표지판 또는 기둥",
+      description: "안내 표지판을 따라 직진하세요.",
+      tip: "바닥 유도선을 확인하면 더 찾기 쉽습니다.",
+      photoPreview: null,
+      indoor: true,
+      elevator: true,
+    };
+    setEditableSteps([...editableSteps, newStep]);
+  };
+
+  const handleRemoveStep = (idToRemove: string) => {
+    if (editableSteps.length <= 1) return;
+    const updated = editableSteps
+      .filter((s) => s.id !== idToRemove)
+      .map((s, idx) => ({ ...s, stepNumber: idx + 1 }));
+    setEditableSteps(updated);
+  };
+
+  const handleStepChange = (
+    id: string,
+    field: keyof EditableStep,
+    value: any
+  ) => {
+    setEditableSteps((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, [field]: value } : s))
+    );
+  };
+
+  const handleStepPhotoUpload = (
+    id: string,
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setNewPhotoPreview(reader.result as string);
+        handleStepChange(id, "photoPreview", reader.result as string);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  // Handle new custom route submit
-  const handleCreateRoute = (e: React.FormEvent) => {
+  // Submit Multi-Photo Route
+  const handleCreateMultiPhotoRoute = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle || !newOrigin || !newDest) return;
 
     const authorName =
-      profile?.name || user?.email?.split("@")[0] || "신규 길잡이";
+      profile?.name || user?.email?.split("@")[0] || "지하길탐험가";
+
+    // Sample placeholder photos fallback if none uploaded
+    const samplePhotos = [
+      "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1538332576228-eb5b4c4de6f5?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1517649763962-0c623266ddc0?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&w=800&q=80",
+    ];
+
+    const builtSteps: VisualStep[] = editableSteps.map((s, idx) => ({
+      stepNumber: idx + 1,
+      title: s.title || `STEP ${idx + 1}`,
+      landmark: s.landmark || "안내 표지판",
+      description: s.description || "해당 통로를 따라 이동하세요.",
+      photoUrl: s.photoPreview || samplePhotos[idx % samplePhotos.length],
+      photoAlt: s.title,
+      tip: s.tip || "쾌적한 지하 통로입니다.",
+      indoor: s.indoor,
+      elevator: s.elevator,
+    }));
 
     const newRouteItem: RouteData = {
       id: `custom-${Date.now()}`,
@@ -462,64 +586,70 @@ export default function Home() {
       title: newTitle,
       origin: newOrigin,
       destination: newDest,
-      duration: "6분",
-      distance: "450m",
+      duration: newDuration,
+      distance: newDistance,
       rainShieldPercent: 100,
-      tempBenefit: "체감 -6°C",
+      tempBenefit: "체감 -7°C (냉방)",
       likes: 1,
-      views: 12,
+      views: 10,
       author: {
         name: authorName,
-        badge: "✨ 뉴 크리에이터",
-        avatarBg: "bg-amber-300",
+        badge: "✨ 신규 길잡이",
+        avatarBg: "bg-amber-400",
       },
-      tags: ["📸 사진 등록됨", "🌧️ 100% 지하", "🆕 방금 등록"],
-      coverPhoto:
-        newPhotoPreview ||
-        "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=1000&q=80",
-      steps: [
-        {
-          stepNumber: 1,
-          title: newOrigin,
-          landmark: "출발지 지하 연결구",
-          description: "출발 개찰구에서 안내 표지판을 따라 진입하세요.",
-          photoUrl:
-            newPhotoPreview ||
-            "https://images.unsplash.com/photo-1538332576228-eb5b4c4de6f5?auto=format&fit=crop&w=800&q=80",
-          photoAlt: "출발지 사진",
-          tip: newTip || "비 올 때 우산 없이 이동 가능한 꿀루트입니다!",
-          indoor: true,
-          elevator: true,
-        },
-        {
-          stepNumber: 2,
-          title: newDest,
-          landmark: "목적지 빌딩 지하 로비",
-          description: "지하 게이트를 통해 목적지에 도착합니다.",
-          photoUrl:
-            "https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&w=800&q=80",
-          photoAlt: "도착지 사진",
-          tip: "단차 없는 엘리베이터 이동이 가능합니다.",
-          indoor: true,
-          elevator: true,
-        },
+      tags: [
+        `📸 사진 ${builtSteps.length}장 포함`,
+        "🌧️ 100% 지하 연결",
+        "🆕 방금 등록",
       ],
-      highlightTip: newTip || "내가 직접 발견한 최고의 쾌적 지하 지름길입니다!",
+      coverPhoto: builtSteps[0].photoUrl,
+      steps: builtSteps,
+      highlightTip:
+        newHighlightTip ||
+        "출발지부터 도착지까지 사진 순서대로 따라오시면 비를 전혀 맞지 않고 도착할 수 있습니다!",
     };
 
     setRoutes([newRouteItem, ...routes]);
     setSelectedRouteId(newRouteItem.id);
     setUploadSuccess(true);
+
     setTimeout(() => {
       setUploadSuccess(false);
       setIsUploadModalOpen(false);
+      // Reset form
       setNewTitle("");
       setNewOrigin("");
       setNewDest("");
-      setNewTip("");
-      setNewPhotoPreview(null);
-    }, 1500);
+      setNewHighlightTip("");
+      setEditableSteps(DEFAULT_EDITABLE_STEPS);
+
+      // Scroll to visual guide view
+      const el = document.getElementById("visual-guide");
+      if (el) el.scrollIntoView({ behavior: "smooth" });
+    }, 1200);
   };
+
+  // Keyboard navigation for Lightbox
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (activeLightboxIndex === null) return;
+      if (e.key === "ArrowLeft") {
+        setActiveLightboxIndex((prev) =>
+          prev !== null && prev > 0 ? prev - 1 : prev
+        );
+      } else if (e.key === "ArrowRight") {
+        setActiveLightboxIndex((prev) =>
+          prev !== null && prev < currentRoute.steps.length - 1
+            ? prev + 1
+            : prev
+        );
+      } else if (e.key === "Escape") {
+        setActiveLightboxIndex(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [activeLightboxIndex, currentRoute.steps.length]);
 
   return (
     <div className="relative min-h-screen bg-[#FAF9F6] text-zinc-900 cute-dots font-sans overflow-x-hidden selection:bg-amber-300 selection:text-zinc-950">
@@ -528,10 +658,10 @@ export default function Home() {
         <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <span className="bg-amber-400 text-zinc-950 text-[10px] font-bold px-2 py-0.5 rounded-full">
-              LIVE
+              NEW
             </span>
             <span className="font-medium text-zinc-200">
-              도쿄 · 오사카 · 삿포로 · 후쿠오카 지하 꿀루트 실시간 사진 가이드 연동 중!
+              출발점부터 도착지까지! 단계별 다중 사진 & 랜드마크 설명 가이드 지원
             </span>
           </div>
 
@@ -564,7 +694,7 @@ export default function Home() {
                 </span>
               </div>
               <p className="text-[11px] text-zinc-600 font-medium">
-                사진 & 영상으로 쉽게 찾는 일본 지하 지름길
+                출발~도착 다중 사진으로 쉽게 찾는 일본 지하 지름길
               </p>
             </div>
           </Link>
@@ -572,15 +702,24 @@ export default function Home() {
 
         {/* Center Nav Links */}
         <nav className="hidden md:flex items-center gap-6 text-sm font-bold text-zinc-800">
-          <a href="#leaderboard" className="hover:text-amber-600 transition flex items-center gap-1.5">
+          <a
+            href="#leaderboard"
+            className="hover:text-amber-600 transition flex items-center gap-1.5"
+          >
             <Trophy className="w-4 h-4 text-amber-500" />
             주간 랭킹
           </a>
-          <a href="#visual-guide" className="hover:text-amber-600 transition flex items-center gap-1.5">
+          <a
+            href="#visual-guide"
+            className="hover:text-amber-600 transition flex items-center gap-1.5"
+          >
             <Camera className="w-4 h-4 text-cyan-600" />
-            사진/영상 가이드
+            사진 스텝 가이드
           </a>
-          <a href="#how-it-works" className="hover:text-amber-600 transition flex items-center gap-1.5">
+          <a
+            href="#how-it-works"
+            className="hover:text-amber-600 transition flex items-center gap-1.5"
+          >
             <Sparkles className="w-4 h-4 text-purple-600" />
             서비스 소개
           </a>
@@ -596,7 +735,7 @@ export default function Home() {
             className="cute-btn-primary px-3.5 py-2 text-xs sm:text-sm flex items-center gap-1.5"
           >
             <Plus className="w-4 h-4" />
-            <span>내 루트 등록</span>
+            <span>내 루트 다중 사진 등록</span>
           </button>
 
           {user ? (
@@ -634,77 +773,49 @@ export default function Home() {
         </div>
       </header>
 
-      {/* 3. HERO SECTION (Warm, Friendly, Visual) */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 pt-10 pb-14 text-center">
-        {/* Cute highlight pill */}
+      {/* 3. HERO SECTION */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 pt-10 pb-12 text-center">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-100 border-2 border-zinc-900 text-xs font-bold text-zinc-900 mb-5 shadow-[2px_2px_0px_#18181b]">
-          <Sparkles className="w-4 h-4 text-amber-500" />
-          <span>비 오는 날도, 폭염에도 뽀송뽀송하게! ☂️☀️</span>
+          <ImagePlus className="w-4 h-4 text-amber-600" />
+          <span>출발점부터 도착지까지 연속 사진 가이드 📸</span>
         </div>
 
         <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-zinc-950 font-jua tracking-normal leading-[1.2]">
-          글로만 보면 헷갈리는 지하 던전?
+          단 한 장의 사진이 아닌,
           <br />
           <span className="bg-amber-300 px-3 py-1 rounded-2xl border-2 border-zinc-900 shadow-[3px_3px_0px_#18181b] inline-block mt-2">
-            사진과 영상으로 한눈에
-          </span>{" "}
-          찾아가세요! 🐾
+            출발부터 도착까지 전체 루트 사진
+          </span>
+          으로 찾아가세요! 🐾
         </h1>
 
         <p className="mt-6 text-sm sm:text-lg text-zinc-700 max-w-2xl mx-auto font-medium leading-relaxed">
-          신주쿠·우메다의 복잡한 지하 출구와 에어컨 빵빵 지름길을
+          개찰구 표지판, 중간 분기점 랜드마크, 도착 게이트까지
           <br className="hidden sm:inline" />
-          실제 유저들이 촬영한 <strong>랜드마크 사진 & 꿀팁</strong>으로 1초 만에 확인하세요.
+          <strong>각 사진마다 상세 설명과 꿀팁</strong>을 보며 지하 미로를 완벽하게 통과하세요.
         </p>
 
-        {/* Quick Search & Filter Strip */}
+        {/* Action Buttons */}
         <div className="mt-8 flex flex-wrap justify-center items-center gap-3">
           <a
             href="#visual-guide"
             className="cute-btn-primary px-6 py-3.5 text-sm sm:text-base flex items-center gap-2"
           >
             <Camera className="w-5 h-5" />
-            사진 스텝 가이드 보러가기
+            연속 사진 스텝 가이드 체험하기
           </a>
           <button
             onClick={() => setIsUploadModalOpen(true)}
             className="cute-btn-secondary px-6 py-3.5 text-sm sm:text-base flex items-center gap-2"
           >
             <Plus className="w-5 h-5 text-amber-600" />
-            내 꿀루트 사진 등록하고 랭커 되기
+            나만의 코스 사진 여러 장 등록하기
           </button>
-        </div>
-
-        {/* 3 Key Visual Proof Cards */}
-        <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-4 text-left max-w-4xl mx-auto">
-          <div className="cute-card p-4 bg-white">
-            <div className="text-2xl mb-1">📸</div>
-            <div className="font-jua text-lg text-zinc-950">실제 출구 사진 안내</div>
-            <div className="text-xs text-zinc-600 mt-1">
-              "A12 출구" 글자 대신 기둥, 분수대, 백화점 게이트 실사진으로 헷갈림 제로!
-            </div>
-          </div>
-
-          <div className="cute-card p-4 bg-white">
-            <div className="text-2xl mb-1">👑</div>
-            <div className="font-jua text-lg text-zinc-950">좋아요 랭킹 보상제</div>
-            <div className="text-xs text-zinc-600 mt-1">
-              내가 올린 꿀루트가 좋아요(❤️)를 많이 받으면 '명예의 전당' 랭커로 등극!
-            </div>
-          </div>
-
-          <div className="cute-card p-4 bg-white">
-            <div className="text-2xl mb-1">❄️</div>
-            <div className="font-jua text-lg text-zinc-950">100% 쾌적 실내 보도</div>
-            <div className="text-xs text-zinc-600 mt-1">
-              게릴라 폭우 시 우산 사용률 0%, 여름철 아스팔트 폭염 대비 체감 -8°C!
-            </div>
-          </div>
         </div>
       </section>
 
-      {/* 4. WEEKLY TOP UNDERGROUND ROUTES LEADERBOARD (루트 랭킹 제도) */}
-      <section id="leaderboard" className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
+      {/* 4. WEEKLY TOP UNDERGROUND ROUTES LEADERBOARD */}
+      <section id="leaderboard" className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
           <div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-200 border-2 border-zinc-900 text-xs font-bold text-zinc-900 mb-2">
@@ -715,7 +826,7 @@ export default function Home() {
               🏆 이번 주 명예의 전당 · 베스트 지하 꿀루트 랭킹
             </h2>
             <p className="text-xs sm:text-sm text-zinc-600 mt-1">
-              이용자들이 직접 걸어보고 감동해서 누른 <strong>좋아요(❤️) 실시간 랭킹</strong>입니다.
+              상세한 사진과 꿀팁이 담긴 루트일수록 좋아요(❤️)를 많이 받습니다.
             </p>
           </div>
 
@@ -761,7 +872,7 @@ export default function Home() {
                     : "bg-white"
                 }`}
               >
-                {/* Top Rank Badge */}
+                {/* Top Rank & Likes */}
                 <div className="flex items-center justify-between gap-2 mb-3">
                   <div className="flex items-center gap-1.5">
                     <span
@@ -799,7 +910,7 @@ export default function Home() {
                     alt={route.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                   />
-                  <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-zinc-900/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-md backdrop-blur-xs">
+                  <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-zinc-900/80 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-md backdrop-blur-xs">
                     <Camera className="w-3 h-3 text-amber-300" />
                     <span>사진 {route.steps.length}장 포함</span>
                   </div>
@@ -825,7 +936,7 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* Footer details: Author & Badges */}
+                {/* Footer details: Author & Duration */}
                 <div className="pt-3 border-t-2 border-zinc-100 flex items-center justify-between text-xs">
                   <div className="flex items-center gap-1.5">
                     <div
@@ -848,18 +959,21 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 5. VISUAL STEP-BY-STEP PHOTO & VIDEO GUIDE (핵심 시각 가이드 뷰어) */}
-      <section id="visual-guide" className="max-w-6xl mx-auto px-4 sm:px-6 py-12 scroll-mt-16">
+      {/* 5. VISUAL STEP-BY-STEP PHOTO & VIDEO GUIDE (출발부터 도착까지 다중 사진 뷰어) */}
+      <section
+        id="visual-guide"
+        className="max-w-6xl mx-auto px-4 sm:px-6 py-12 scroll-mt-16"
+      >
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-100 border-2 border-zinc-900 text-xs font-bold text-zinc-900 mb-2">
             <Camera className="w-4 h-4 text-cyan-600" />
-            Visual Step-by-Step Navigator
+            Full Route Photo Journey
           </div>
           <h2 className="text-2xl sm:text-4xl font-extrabold text-zinc-950 font-jua">
-            📸 사진으로 한눈에 따라가는 현장 길안내
+            📸 출발부터 도착까지 단계별 사진 & 설명 가이드
           </h2>
           <p className="text-xs sm:text-sm text-zinc-600 mt-1 max-w-xl mx-auto">
-            각 분기점마다 실제 찍힌 사진과 바닥 유도선, 랜드마크를 보며 따라가세요.
+            출발지 ➡️ 중간 분기점 ➡️ 도착지까지 실제 현장 사진과 꿀팁을 확인하세요. (사진 클릭 시 전체화면 확대)
           </p>
         </div>
 
@@ -875,24 +989,30 @@ export default function Home() {
                 <span className="bg-zinc-100 text-zinc-700 text-xs font-medium px-2 py-0.5 rounded-md border border-zinc-300">
                   작성자: {currentRoute.author.name} ({currentRoute.author.badge})
                 </span>
+                <span className="bg-cyan-100 text-cyan-900 text-xs font-bold px-2 py-0.5 rounded-md border border-cyan-300">
+                  사진 {currentRoute.steps.length}단계 수록
+                </span>
               </div>
 
               <h3 className="text-xl sm:text-3xl font-extrabold text-zinc-950 font-jua">
                 {currentRoute.title}
               </h3>
               <p className="text-xs sm:text-sm text-zinc-600 mt-1">
-                <strong>{currentRoute.origin}</strong> ➡️ <strong>{currentRoute.destination}</strong>
+                <strong>{currentRoute.origin}</strong> ➡️{" "}
+                <strong>{currentRoute.destination}</strong>
               </p>
             </div>
 
-            {/* Quick like & stats on viewer */}
+            {/* Quick like button */}
             <div className="flex items-center gap-3">
               <button
                 onClick={(e) => handleLikeRoute(currentRoute.id, e)}
                 className="cute-btn-primary px-4 py-2.5 text-xs sm:text-sm flex items-center gap-2 text-rose-700"
               >
                 <Heart className="w-4 h-4 fill-rose-600 text-rose-600" />
-                <span className="font-bold text-zinc-950">이 루트 추천 ({currentRoute.likes})</span>
+                <span className="font-bold text-zinc-950">
+                  이 루트 추천 ({currentRoute.likes})
+                </span>
               </button>
             </div>
           </div>
@@ -904,7 +1024,9 @@ export default function Home() {
                 <Umbrella className="w-4 h-4" /> 우천 노출도
               </div>
               <div className="text-base font-extrabold text-zinc-950 font-jua mt-0.5">
-                {currentRoute.rainShieldPercent === 100 ? "0m (100% 실내)" : "일부 야외"}
+                {currentRoute.rainShieldPercent === 100
+                  ? "0m (100% 실내)"
+                  : "일부 야외"}
               </div>
             </div>
 
@@ -936,74 +1058,78 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Photo Steps Grid */}
+          {/* Sequential Step-by-Step Multi-Photo Timeline Grid */}
           <div className="space-y-6 my-8">
             <div className="flex items-center justify-between">
               <h4 className="font-jua text-xl text-zinc-950 flex items-center gap-2">
                 <Camera className="w-5 h-5 text-amber-500" />
-                단계별 현장 사진 & 표지판 확인 (클릭 시 확대)
+                출발지 ➡️ 도착지 사진 순서대로 따라가기
               </h4>
-              <span className="text-xs text-zinc-500">총 {currentRoute.steps.length}단계</span>
+              <span className="text-xs text-zinc-500 font-bold">
+                각 사진 클릭 시 전체화면 넘겨보기 지원
+              </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {currentRoute.steps.map((step, idx) => (
                 <div
                   key={idx}
-                  onClick={() =>
-                    setLightboxPhoto({
-                      url: step.photoUrl,
-                      alt: step.photoAlt,
-                      title: step.title,
-                      tip: step.tip,
-                    })
-                  }
-                  className="cute-card bg-[#FAF9F6] p-4 cursor-pointer group hover:bg-white transition"
+                  onClick={() => setActiveLightboxIndex(idx)}
+                  className="cute-card bg-[#FAF9F6] p-4 cursor-pointer group hover:bg-white transition flex flex-col justify-between"
                 >
-                  {/* Step Number Tag */}
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="bg-zinc-900 text-amber-300 text-xs font-bold px-2.5 py-0.5 rounded-full font-mono">
-                      STEP {step.stepNumber}
-                    </span>
-                    <span className="text-[11px] font-bold text-zinc-500 flex items-center gap-1">
-                      <Maximize2 className="w-3 h-3" /> 크게 보기
-                    </span>
-                  </div>
-
-                  {/* Photo Container */}
-                  <div className="relative w-full h-44 rounded-xl border-2 border-zinc-900 overflow-hidden mb-3">
-                    <img
-                      src={step.photoUrl}
-                      alt={step.photoAlt}
-                      className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-                    />
-                    <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition" />
-                    <div className="absolute bottom-2 left-2 bg-zinc-900/80 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded backdrop-blur-xs">
-                      🔍 {step.landmark}
+                  <div>
+                    {/* Step Number Tag & Indicator */}
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="bg-zinc-900 text-amber-300 text-xs font-bold px-2.5 py-0.5 rounded-full font-mono">
+                        {idx === 0
+                          ? "🚩 출발점 (STEP 1)"
+                          : idx === currentRoute.steps.length - 1
+                          ? `🎯 도착점 (STEP ${idx + 1})`
+                          : `🚶 경유지 (STEP ${idx + 1})`}
+                      </span>
+                      <span className="text-[11px] font-bold text-zinc-500 flex items-center gap-1">
+                        <Maximize2 className="w-3 h-3" /> 크게 보기
+                      </span>
                     </div>
+
+                    {/* Photo Container */}
+                    <div className="relative w-full h-48 rounded-xl border-2 border-zinc-900 overflow-hidden mb-3">
+                      <img
+                        src={step.photoUrl}
+                        alt={step.photoAlt}
+                        className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                      />
+                      <div className="absolute bottom-2 left-2 bg-zinc-900/85 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded backdrop-blur-xs">
+                        🔍 {step.landmark}
+                      </div>
+                    </div>
+
+                    {/* Step Title & Detailed Description */}
+                    <h5 className="font-jua text-base text-zinc-950 mb-1">
+                      {step.title}
+                    </h5>
+                    <p className="text-xs text-zinc-600 leading-relaxed mb-3">
+                      {step.description}
+                    </p>
                   </div>
 
-                  <h5 className="font-jua text-base text-zinc-950 mb-1">{step.title}</h5>
-                  <p className="text-xs text-zinc-600 leading-relaxed mb-3">
-                    {step.description}
-                  </p>
-
-                  <div className="p-2 rounded-xl bg-amber-100/70 border border-amber-300 text-[11px] text-amber-900 font-medium">
-                    💡 <strong>길잡이 팁:</strong> {step.tip}
+                  {/* Step Tip */}
+                  <div className="p-2.5 rounded-xl bg-amber-100/80 border border-amber-300 text-[11px] text-amber-950 font-medium">
+                    💡 <strong>구간 꿀팁:</strong> {step.tip}
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Big Highlight Tip Box */}
+          {/* Route Summary Highlight */}
           <div className="p-4 rounded-2xl bg-amber-300 border-2 border-zinc-900 shadow-[3px_3px_0px_#18181b] flex items-start gap-3">
             <div className="w-8 h-8 rounded-full bg-zinc-950 text-amber-300 flex items-center justify-center shrink-0 font-bold">
               🐾
             </div>
             <div>
               <strong className="font-jua text-base text-zinc-950 block">
-                치카미치 크리에이터 추천 포인트
+                전체 코스 핵심 요약
               </strong>
               <p className="text-xs sm:text-sm text-zinc-900 mt-0.5 leading-relaxed font-medium">
                 {currentRoute.highlightTip}
@@ -1013,10 +1139,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 6. UPLOAD ROUTE MODAL (사용자 사진/영상 루트 등록 기능) */}
+      {/* 6. MULTI-PHOTO ROUTE CREATOR MODAL (사용자 여러 장 사진 & 설명 등록 폼) */}
       {isUploadModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="cute-card bg-white max-w-lg w-full p-6 sm:p-8 max-h-[90vh] overflow-y-auto relative animate-in fade-in zoom-in-95">
+          <div className="cute-card bg-white max-w-2xl w-full p-6 sm:p-8 max-h-[90vh] overflow-y-auto relative animate-in fade-in zoom-in-95">
             <button
               onClick={() => setIsUploadModalOpen(false)}
               className="absolute top-4 right-4 p-1.5 rounded-full border-2 border-zinc-900 bg-zinc-100 hover:bg-zinc-200 text-zinc-900"
@@ -1024,131 +1150,256 @@ export default function Home() {
               <X className="w-4 h-4" />
             </button>
 
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-1">
               <span className="text-2xl">📸</span>
-              <h3 className="font-jua text-2xl text-zinc-950">
-                나만의 지하 꿀루트 & 사진 등록하기
+              <h3 className="font-jua text-2xl sm:text-3xl text-zinc-950">
+                출발~도착 다중 사진 꿀루트 등록하기
               </h3>
             </div>
-            <p className="text-xs text-zinc-600 mb-5">
-              비 안 맞는 지름길 사진을 공유하면 다른 여행자들이 좋아요(❤️)를 누르고 주간 랭킹에 등록됩니다!
+            <p className="text-xs text-zinc-600 mb-6">
+              출발지부터 도착지까지 단계별로 사진을 첨부하고 설명을 작성해 주세요.
+              등록된 루트는 주간 랭킹에 올라가 좋아요(❤️)를 받을 수 있습니다!
             </p>
 
-            <form onSubmit={handleCreateRoute} className="space-y-4 text-xs">
-              <div>
-                <label className="block font-bold text-zinc-900 mb-1">
-                  루트 제목 (예: 신주쿠 서쪽 ➡️ 도쿄도청 무빙워크 쾌속길)
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  placeholder="예: 우메다 화이티 ➡️ 한큐백화점 에어컨 직통로"
-                  className="w-full bg-[#FAF9F6] border-2 border-zinc-900 rounded-xl px-3 py-2.5 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-amber-400 font-medium"
-                />
-              </div>
+            <form onSubmit={handleCreateMultiPhotoRoute} className="space-y-6 text-xs">
+              {/* Basic Route Information */}
+              <div className="p-4 rounded-2xl bg-[#FAF9F6] border-2 border-zinc-900 space-y-3">
+                <div className="font-jua text-base text-zinc-950 flex items-center gap-1.5">
+                  <FileText className="w-4 h-4 text-amber-600" />
+                  1. 기본 루트 정보
+                </div>
 
-              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-zinc-900 mb-1">출발지 (역/개찰구)</label>
+                  <label className="block font-bold text-zinc-900 mb-1">
+                    루트 제목 (예: 신주쿠 서쪽 ➡️ 도쿄도청 무빙워크 직통길)
+                  </label>
                   <input
                     type="text"
                     required
-                    value={newOrigin}
-                    onChange={(e) => setNewOrigin(e.target.value)}
-                    placeholder="예: JR 신주쿠역 서쪽 B1F"
-                    className="w-full bg-[#FAF9F6] border-2 border-zinc-900 rounded-xl px-3 py-2 text-xs text-zinc-900 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    placeholder="예: 우메다 화이티 ➡️ 한큐백화점 에어컨 직통로"
+                    className="w-full bg-white border-2 border-zinc-900 rounded-xl px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-amber-400 font-medium"
                   />
                 </div>
-                <div>
-                  <label className="block font-bold text-zinc-900 mb-1">도착지 (건물/출구)</label>
-                  <input
-                    type="text"
-                    required
-                    value={newDest}
-                    onChange={(e) => setNewDest(e.target.value)}
-                    placeholder="예: 도쿄도청 지하 로비"
-                    className="w-full bg-[#FAF9F6] border-2 border-zinc-900 rounded-xl px-3 py-2 text-xs text-zinc-900 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                  />
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block font-bold text-zinc-900 mb-1">지역</label>
+                    <select
+                      value={newCity}
+                      onChange={(e) => setNewCity(e.target.value)}
+                      className="w-full bg-white border-2 border-zinc-900 rounded-xl px-3 py-2 text-xs text-zinc-900 font-medium focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    >
+                      <option value="tokyo">🗼 도쿄 (신주쿠/도쿄역)</option>
+                      <option value="osaka">🏯 오사카 (우메다/난바)</option>
+                      <option value="sapporo">❄️ 삿포로 (치카호)</option>
+                      <option value="fukuoka">🍜 후쿠오카 (텐진)</option>
+                      <option value="nagoya">🏯 나고야 (메이에키)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-zinc-900 mb-1">
+                      출발지 (역/개찰구)
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={newOrigin}
+                      onChange={(e) => setNewOrigin(e.target.value)}
+                      placeholder="예: JR 신주쿠역 서쪽 B1F"
+                      className="w-full bg-white border-2 border-zinc-900 rounded-xl px-3 py-2 text-xs text-zinc-900 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-zinc-900 mb-1">
+                      도착지 (건물/출구)
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={newDest}
+                      onChange={(e) => setNewDest(e.target.value)}
+                      placeholder="예: 도쿄도청 지하 로비"
+                      className="w-full bg-white border-2 border-zinc-900 rounded-xl px-3 py-2 text-xs text-zinc-900 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div>
-                <label className="block font-bold text-zinc-900 mb-1">지역 선택</label>
-                <select
-                  value={newCity}
-                  onChange={(e) => setNewCity(e.target.value)}
-                  className="w-full bg-[#FAF9F6] border-2 border-zinc-900 rounded-xl px-3 py-2 text-xs text-zinc-900 font-medium focus:outline-none focus:ring-2 focus:ring-amber-400"
-                >
-                  <option value="tokyo">🗼 도쿄 (신주쿠/도쿄역/시부야)</option>
-                  <option value="osaka">🏯 오사카 (우메다/난바)</option>
-                  <option value="sapporo">❄️ 삿포로 (치카호)</option>
-                  <option value="fukuoka">🍜 후쿠오카 (텐진)</option>
-                  <option value="nagoya">🏯 나고야 (메이에키)</option>
-                </select>
-              </div>
+              {/* Multi-Step Photos & Descriptions Section */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="font-jua text-base text-zinc-950 flex items-center gap-1.5">
+                    <Camera className="w-4 h-4 text-cyan-600" />
+                    2. 출발 ➡️ 도착 단계별 사진 & 설명 ({editableSteps.length}개 등록 중)
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAddStep}
+                    className="cute-btn-primary px-3 py-1 text-xs flex items-center gap-1"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>단계 추가하기</span>
+                  </button>
+                </div>
 
-              {/* Photo Upload Input with Preview */}
-              <div>
-                <label className="block font-bold text-zinc-900 mb-1">
-                  현장 사진 업로드 (표지판/분기점 랜드마크)
-                </label>
-                <div className="border-2 border-dashed border-zinc-400 hover:border-zinc-900 rounded-2xl p-4 text-center bg-[#FAF9F6] transition cursor-pointer relative">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                  />
-                  {newPhotoPreview ? (
-                    <div className="relative h-32 w-full rounded-xl overflow-hidden border border-zinc-900">
-                      <img
-                        src={newPhotoPreview}
-                        alt="Preview"
-                        className="w-full h-full object-cover"
-                      />
-                      <span className="absolute bottom-1 right-2 bg-zinc-900 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded">
-                        사진 첨부됨 (변경 클릭)
+                {editableSteps.map((step, idx) => (
+                  <div
+                    key={step.id}
+                    className="p-4 rounded-2xl bg-white border-2 border-zinc-900 shadow-[3px_3px_0px_#18181b] space-y-3 relative"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="bg-zinc-900 text-amber-300 text-xs font-bold px-2.5 py-0.5 rounded-full font-mono">
+                        {idx === 0
+                          ? "🚩 STEP 1 (출발지)"
+                          : idx === editableSteps.length - 1
+                          ? `🎯 STEP ${idx + 1} (도착지)`
+                          : `🚶 STEP ${idx + 1} (경유지/분기점)`}
                       </span>
+
+                      {editableSteps.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveStep(step.id)}
+                          className="text-zinc-400 hover:text-red-500 p-1 transition"
+                          title="이 단계 삭제"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
-                  ) : (
-                    <div className="py-3">
-                      <UploadCloud className="w-8 h-8 text-amber-500 mx-auto mb-1" />
-                      <p className="font-bold text-zinc-900">클릭하여 사진 파일 선택</p>
-                      <p className="text-[11px] text-zinc-500">
-                        PNG, JPG, 스마트폰 촬영 사진 지원
-                      </p>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {/* Photo Upload for this specific step */}
+                      <div>
+                        <label className="block font-bold text-zinc-900 mb-1">
+                          이 단계 현장 사진
+                        </label>
+                        <div className="border-2 border-dashed border-zinc-400 hover:border-zinc-900 rounded-xl p-3 text-center bg-[#FAF9F6] transition cursor-pointer relative h-36 flex items-center justify-center">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleStepPhotoUpload(step.id, e)}
+                            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                          />
+                          {step.photoPreview ? (
+                            <div className="relative h-full w-full rounded-lg overflow-hidden border border-zinc-900">
+                              <img
+                                src={step.photoPreview}
+                                alt="Step preview"
+                                className="w-full h-full object-cover"
+                              />
+                              <span className="absolute bottom-1 right-1 bg-zinc-900 text-amber-300 text-[9px] font-bold px-1.5 py-0.5 rounded">
+                                변경 클릭
+                              </span>
+                            </div>
+                          ) : (
+                            <div>
+                              <ImagePlus className="w-6 h-6 text-amber-500 mx-auto mb-1" />
+                              <p className="font-bold text-[11px] text-zinc-900">
+                                사진 파일 선택
+                              </p>
+                              <p className="text-[10px] text-zinc-500">
+                                스마트폰 촬영 사진 첨부
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Step Details */}
+                      <div className="space-y-2">
+                        <div>
+                          <label className="block font-bold text-zinc-900 mb-0.5">
+                            단계 제목 / 위치
+                          </label>
+                          <input
+                            type="text"
+                            value={step.title}
+                            onChange={(e) =>
+                              handleStepChange(step.id, "title", e.target.value)
+                            }
+                            placeholder="예: JR 신주쿠 서쪽 개찰구 앞"
+                            className="w-full bg-[#FAF9F6] border-2 border-zinc-900 rounded-lg px-2.5 py-1.5 text-xs text-zinc-900 focus:outline-none focus:ring-2 focus:ring-amber-400 font-medium"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block font-bold text-zinc-900 mb-0.5">
+                            눈에 띄는 랜드마크 / 표지판
+                          </label>
+                          <input
+                            type="text"
+                            value={step.landmark}
+                            onChange={(e) =>
+                              handleStepChange(step.id, "landmark", e.target.value)
+                            }
+                            placeholder="예: 노란색 도쿄도청 표지판 & 분수대"
+                            className="w-full bg-[#FAF9F6] border-2 border-zinc-900 rounded-lg px-2.5 py-1.5 text-xs text-zinc-900 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block font-bold text-zinc-900 mb-0.5">
+                            통과 방법 & 꿀팁 설명
+                          </label>
+                          <textarea
+                            rows={2}
+                            value={step.description}
+                            onChange={(e) =>
+                              handleStepChange(step.id, "description", e.target.value)
+                            }
+                            placeholder="예: 개찰구 나와서 정면 오다큐 백화점 통로로 직진하세요."
+                            className="w-full bg-[#FAF9F6] border-2 border-zinc-900 rounded-lg px-2.5 py-1.5 text-xs text-zinc-900 focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none"
+                          />
+                        </div>
+                      </div>
                     </div>
-                  )}
-                </div>
+                  </div>
+                ))}
+
+                <button
+                  type="button"
+                  onClick={handleAddStep}
+                  className="w-full py-2.5 border-2 border-dashed border-zinc-900 rounded-2xl bg-amber-50 hover:bg-amber-100 text-zinc-950 font-bold flex items-center justify-center gap-1.5 transition"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>+ 사진 & 다음 경유지 단계 추가하기</span>
+                </button>
               </div>
 
+              {/* Final Tip */}
               <div>
                 <label className="block font-bold text-zinc-900 mb-1">
-                  길잡이 꿀팁 & 설명
+                  전체 코스 핵심 꿀팁 요약
                 </label>
                 <textarea
-                  rows={3}
-                  value={newTip}
-                  onChange={(e) => setNewTip(e.target.value)}
-                  placeholder="예: 7번 출구 에스컬레이터 타고 올라가면 바로 백화점 지하 푸드코트랑 연결돼요!"
+                  rows={2}
+                  value={newHighlightTip}
+                  onChange={(e) => setNewHighlightTip(e.target.value)}
+                  placeholder="예: 비 올 때 지상으로 안 나가고 무빙워크 타면 땀 한 방울 안 흘리고 8분 만에 갈 수 있어요!"
                   className="w-full bg-[#FAF9F6] border-2 border-zinc-900 rounded-xl px-3 py-2 text-xs text-zinc-900 focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none"
                 />
               </div>
 
+              {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full cute-btn-primary py-3 text-sm font-bold flex items-center justify-center gap-2 mt-2"
+                className="w-full cute-btn-primary py-3.5 text-sm font-bold flex items-center justify-center gap-2"
               >
-                <UploadCloud className="w-4 h-4" />
-                <span>루트 등록하고 좋아요 받기!</span>
+                <UploadCloud className="w-5 h-5" />
+                <span>다중 사진 루트 등록하고 랭커 도전하기! 🚀</span>
               </button>
 
               {uploadSuccess && (
-                <div className="p-3 rounded-xl bg-emerald-100 border-2 border-zinc-900 text-emerald-950 font-bold text-xs flex items-center gap-2">
+                <div className="p-3.5 rounded-xl bg-emerald-100 border-2 border-zinc-900 text-emerald-950 font-bold text-xs flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>루트가 성공적으로 등록되었습니다! 랭킹 목록에 반영됩니다.</span>
+                  <span>
+                    루트가 성공적으로 등록되었습니다! 사진 스텝 가이드에 반영됩니다.
+                  </span>
                 </div>
               )}
             </form>
@@ -1156,111 +1407,200 @@ export default function Home() {
         </div>
       )}
 
-      {/* 7. LIGHTBOX MODAL FOR EXPANDED PHOTO VIEW */}
-      {lightboxPhoto && (
+      {/* 7. INTERACTIVE SEQUENTIAL PHOTO LIGHTBOX (이전/다음 사진 연속 보기) */}
+      {activeLightboxIndex !== null && currentRoute.steps[activeLightboxIndex] && (
         <div
-          onClick={() => setLightboxPhoto(null)}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs cursor-pointer animate-in fade-in"
+          onClick={() => setActiveLightboxIndex(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xs cursor-pointer animate-in fade-in"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="cute-card bg-white max-w-2xl w-full p-5 relative overflow-hidden"
+            className="cute-card bg-white max-w-3xl w-full p-5 sm:p-7 relative overflow-hidden"
           >
+            {/* Close Button */}
             <button
-              onClick={() => setLightboxPhoto(null)}
-              className="absolute top-3 right-3 p-1.5 rounded-full border-2 border-zinc-900 bg-zinc-100 hover:bg-zinc-200 text-zinc-900 z-10"
+              onClick={() => setActiveLightboxIndex(null)}
+              className="absolute top-4 right-4 p-1.5 rounded-full border-2 border-zinc-900 bg-zinc-100 hover:bg-zinc-200 text-zinc-900 z-20"
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5" />
             </button>
 
-            <div className="relative w-full h-80 rounded-xl border-2 border-zinc-900 overflow-hidden mb-4 bg-zinc-100">
-              <img
-                src={lightboxPhoto.url}
-                alt={lightboxPhoto.alt}
-                className="w-full h-full object-cover"
-              />
+            {/* Step Counter Badge */}
+            <div className="flex items-center justify-between mb-3">
+              <span className="bg-zinc-900 text-amber-300 text-xs font-bold px-3 py-1 rounded-full font-mono">
+                STEP {activeLightboxIndex + 1} / {currentRoute.steps.length} 단계
+              </span>
+              <span className="text-xs text-zinc-500 font-bold hidden sm:inline">
+                키보드 ◀ ▶ 키로 이전/다음 사진 이동 가능
+              </span>
             </div>
 
-            <h4 className="font-jua text-xl text-zinc-950 mb-1">
-              {lightboxPhoto.title}
-            </h4>
-            <p className="text-xs text-zinc-700 leading-relaxed font-medium">
-              💡 {lightboxPhoto.tip}
-            </p>
+            {/* Large Photo with Prev / Next Navigation Arrows */}
+            <div className="relative w-full h-80 sm:h-96 rounded-2xl border-2 border-zinc-900 overflow-hidden mb-4 bg-zinc-100 flex items-center justify-center">
+              <img
+                src={currentRoute.steps[activeLightboxIndex].photoUrl}
+                alt={currentRoute.steps[activeLightboxIndex].photoAlt}
+                className="w-full h-full object-cover"
+              />
+
+              {/* Prev Button */}
+              {activeLightboxIndex > 0 && (
+                <button
+                  onClick={() =>
+                    setActiveLightboxIndex((prev) =>
+                      prev !== null ? prev - 1 : 0
+                    )
+                  }
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white border-2 border-zinc-900 flex items-center justify-center shadow-[2px_2px_0px_#18181b] transition hover:scale-105"
+                  title="이전 사진"
+                >
+                  <ChevronLeft className="w-6 h-6 text-zinc-950" />
+                </button>
+              )}
+
+              {/* Next Button */}
+              {activeLightboxIndex < currentRoute.steps.length - 1 && (
+                <button
+                  onClick={() =>
+                    setActiveLightboxIndex((prev) =>
+                      prev !== null ? prev + 1 : 0
+                    )
+                  }
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white border-2 border-zinc-900 flex items-center justify-center shadow-[2px_2px_0px_#18181b] transition hover:scale-105"
+                  title="다음 사진"
+                >
+                  <ChevronRight className="w-6 h-6 text-zinc-950" />
+                </button>
+              )}
+            </div>
+
+            {/* Step Explanation in Lightbox */}
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2">
+                <h4 className="font-jua text-xl text-zinc-950">
+                  {currentRoute.steps[activeLightboxIndex].title}
+                </h4>
+                <span className="bg-amber-100 text-amber-900 text-xs font-bold px-2 py-0.5 rounded border border-amber-300">
+                  🔍 {currentRoute.steps[activeLightboxIndex].landmark}
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-zinc-700 leading-relaxed font-medium">
+                {currentRoute.steps[activeLightboxIndex].description}
+              </p>
+              <div className="p-2 rounded-xl bg-amber-50 border border-amber-300 text-xs text-amber-950 font-bold mt-2">
+                💡 <strong>길잡이 팁:</strong>{" "}
+                {currentRoute.steps[activeLightboxIndex].tip}
+              </div>
+            </div>
+
+            {/* Thumbnail Strip Below */}
+            <div className="flex items-center gap-2 mt-4 pt-3 border-t-2 border-zinc-100 overflow-x-auto">
+              {currentRoute.steps.map((s, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => setActiveLightboxIndex(idx)}
+                  className={`w-16 h-12 rounded-lg border-2 overflow-hidden cursor-pointer shrink-0 transition ${
+                    idx === activeLightboxIndex
+                      ? "border-amber-500 ring-2 ring-amber-400 scale-105"
+                      : "border-zinc-300 opacity-60 hover:opacity-100"
+                  }`}
+                >
+                  <img
+                    src={s.photoUrl}
+                    alt={s.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
 
-      {/* 8. WHY PHOTOS & VIDEOS MATTER */}
-      <section id="how-it-works" className="max-w-6xl mx-auto px-4 sm:px-6 py-14 border-t-2 border-zinc-900">
+      {/* 8. WHY MULTI-PHOTO MATTERS */}
+      <section
+        id="how-it-works"
+        className="max-w-6xl mx-auto px-4 sm:px-6 py-14 border-t-2 border-zinc-900"
+      >
         <div className="text-center max-w-2xl mx-auto mb-10">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-100 border-2 border-zinc-900 text-xs font-bold text-zinc-900 mb-2">
             <Sparkles className="w-4 h-4 text-purple-600" />
-            Visual Power
+            Visual Route Power
           </div>
           <h2 className="text-2xl sm:text-4xl font-extrabold text-zinc-950 font-jua">
-            왜 글보다 <span className="bg-amber-300 px-2 py-0.5 rounded-lg border border-zinc-900">‘사진과 영상’</span>이 중요할까요?
+            출발부터 도착까지, 연속 사진의 힘!
           </h2>
           <p className="text-xs sm:text-sm text-zinc-600 mt-2">
-            일반 지도 앱의 평면 텍스트 길안내는 지하에서 무용지물입니다.
+            중간에 길을 잃지 않도록 모든 분기점 사진과 랜드마크를 연속으로 확인하세요.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="cute-card bg-white p-6">
             <div className="w-12 h-12 rounded-2xl bg-amber-300 border-2 border-zinc-900 flex items-center justify-center text-xl mb-4 font-bold">
-              1
+              🚩
             </div>
-            <h3 className="font-jua text-xl text-zinc-950 mb-2">GPS 안 터져도 랜드마크로 1초 식별</h3>
+            <h3 className="font-jua text-xl text-zinc-950 mb-2">
+              1. 출발 개찰구 표지판 사진
+            </h3>
             <p className="text-xs text-zinc-600 leading-relaxed">
-              지하 깊은 곳에서 GPS가 튕겨도 "빨간색 기둥 앞", "원형 분수대 옆" 실제 사진을 보며 헷갈림 없이 이동할 수 있습니다.
+              역에서 내리자마자 어느 개찰구로 나가야 비를 안 맞는지 첫 출발점 사진으로 확인합니다.
             </p>
           </div>
 
           <div className="cute-card bg-white p-6">
             <div className="w-12 h-12 rounded-2xl bg-cyan-300 border-2 border-zinc-900 flex items-center justify-center text-xl mb-4 font-bold">
-              2
+              🚶
             </div>
-            <h3 className="font-jua text-xl text-zinc-950 mb-2">계단 없는 엘리베이터 뷰 확인</h3>
+            <h3 className="font-jua text-xl text-zinc-950 mb-2">
+              2. 중간 분기점 랜드마크 사진
+            </h3>
             <p className="text-xs text-zinc-600 leading-relaxed">
-              무거운 캐리어를 끌거나 유모차를 동반했을 때, 실제로 계단이 없는지 사진으로 미리 확인하고 안심하고 이동하세요.
+              복잡한 갈림길에서 분수대, 빨간 간판, 무빙워크 등 시각적 랜드마크 사진을 보고 1초 만에 길을 찾습니다.
             </p>
           </div>
 
           <div className="cute-card bg-white p-6">
             <div className="w-12 h-12 rounded-2xl bg-rose-300 border-2 border-zinc-900 flex items-center justify-center text-xl mb-4 font-bold">
-              3
+              🎯
             </div>
-            <h3 className="font-jua text-xl text-zinc-950 mb-2">유저 보상 랭킹 시스템</h3>
+            <h3 className="font-jua text-xl text-zinc-950 mb-2">
+              3. 도착 빌딩 직결 게이트 사진
+            </h3>
             <p className="text-xs text-zinc-600 leading-relaxed">
-              남들이 모르는 나만의 지하 지름길 사진을 등록하고 좋아요를 모아 주간 명예의 전당 랭커 배지를 획득하세요!
+              지상으로 나가지 않고 건물 지하 로비로 직통 연결되는 최종 게이트 사진으로 완벽하게 골인!
             </p>
           </div>
         </div>
       </section>
 
       {/* 9. FAQ ACCORDION */}
-      <section id="faq" className="max-w-4xl mx-auto px-4 sm:px-6 py-12 border-t-2 border-zinc-900">
+      <section
+        id="faq"
+        className="max-w-4xl mx-auto px-4 sm:px-6 py-12 border-t-2 border-zinc-900"
+      >
         <div className="text-center mb-8">
           <h2 className="text-2xl sm:text-3xl font-extrabold text-zinc-950 font-jua">
             자주 묻는 질문 (FAQ)
           </h2>
-          <p className="text-xs text-zinc-600 mt-1">치카미치 이용에 관한 궁금증을 풀어드립니다.</p>
+          <p className="text-xs text-zinc-600 mt-1">
+            치카미치 다중 사진 길안내에 관한 궁금증을 확인해 보세요.
+          </p>
         </div>
 
         <div className="space-y-3">
           {[
             {
-              q: "사진이나 영상을 올리면 정말 랭킹에 반영되나요?",
-              a: "네! 사용자들이 등록한 루트에 다른 보행자들이 좋아요(❤️)를 누르면 실시간으로 주간 베스트 랭킹에 반영되며, 1~3위 랭커에게는 특별 프로필 배지와 치카미치 서포터 혜택이 주어집니다.",
+              q: "사진을 몇 장까지 등록할 수 있나요?",
+              a: "출발지부터 중간 분기점, 도착지까지 원하는 만큼 단계를 무제한으로 추가하여 각 단계별 사진과 설명을 작성할 수 있습니다.",
             },
             {
-              q: "비 오는 날 정말 우산 한 번도 안 펴도 되나요?",
-              a: "'우천 100% 회피' 배지가 붙은 루트는 지하철 개찰구부터 목적지 빌딩 지하 로비까지 지상으로 단 1미터도 나가지 않는 100% 지하 연결 통로만 엄선하여 안내합니다.",
+              q: "내가 올린 사진 루트에 좋아요가 많아지면 어떻게 되나요?",
+              a: "실시간 좋아요(❤️) 수에 따라 주간 명예의 전당 랭킹 1~3위에 등극하며, 프로필에 골드/실버/브론즈 길잡이 랭커 배지가 부여됩니다.",
             },
             {
-              q: "새벽이나 늦은 밤에도 이용할 수 있나요?",
-              a: "일본 지하상가와 개별 빌딩 연결 통로는 밤 11시~자정 이후 셔터가 닫히는 곳이 있습니다. 치카미치는 24시간 개방되는 공공 지하보도와 심야 통로 시간표를 함께 제공합니다.",
+              q: "스마트폰으로 현장에서 바로 사진 찍어 올릴 수 있나요?",
+              a: "네! 모바일 브라우저에서도 '내 루트 등록' 버튼을 누르면 스마트폰 카메라로 바로 촬영하거나 갤러리의 사진을 첨부하여 실시간으로 등록할 수 있습니다.",
             },
           ].map((item, idx) => (
             <div key={idx} className="cute-card bg-white overflow-hidden">
@@ -1296,7 +1636,9 @@ export default function Home() {
             다음 일본 여행, 우산 없이 가볍게 걸어보세요!
           </h2>
           <p className="mt-2 text-xs sm:text-sm text-zinc-900 font-medium max-w-md mx-auto">
-            치카미치 모바일 앱 출시 알림을 신청하시면 <strong>일본 5대 도시 지하 던전 사진 가이드북</strong>을 무료로 보내드립니다.
+            치카미치 모바일 앱 출시 알림을 신청하시면{" "}
+            <strong>일본 5대 도시 지하 던전 고화질 사진 가이드북</strong>을
+            무료로 보내드립니다.
           </p>
 
           <form
@@ -1328,7 +1670,9 @@ export default function Home() {
           {subscribed && (
             <div className="mt-4 p-3 max-w-md mx-auto rounded-xl bg-white border-2 border-zinc-900 text-zinc-950 text-xs font-bold flex items-center justify-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span>사전 등록이 완료되었습니다! 출시 소식을 가장 먼저 보내드릴게요.</span>
+              <span>
+                사전 등록이 완료되었습니다! 출시 소식을 가장 먼저 보내드릴게요.
+              </span>
             </div>
           )}
         </div>
@@ -1338,9 +1682,11 @@ export default function Home() {
       <footer className="border-t-2 border-zinc-900 bg-white py-8 px-4 sm:px-6 text-xs text-zinc-600">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="font-jua text-base font-bold text-zinc-950">치카미치 (CHIKAMICHI)</span>
+            <span className="font-jua text-base font-bold text-zinc-950">
+              치카미치 (CHIKAMICHI)
+            </span>
             <span>•</span>
-            <span>사진·영상 기반 일본 도심 지하 지름길 내비게이션</span>
+            <span>출발부터 도착까지 다중 사진 기반 지하 꿀루트 내비게이션</span>
           </div>
 
           <div className="flex items-center gap-4 font-bold text-zinc-800">
