@@ -18,15 +18,17 @@ interface AuthContextType {
   user: any | null;
   profile: UserProfile | null;
   isLoading: boolean;
-  signInWithGoogle: (redirectTo?: string) => Promise<void>;
-  signInWithLine: (redirectTo?: string) => Promise<void>;
-  signInWithEmail: (email: string, password: string) => Promise<{ error: any | null }>;
+  signInWithGoogle: (redirectTo?: string) => Promise<{ error: any | null }>;
+  signInWithLine: (redirectTo?: string) => Promise<{ error: any | null }>;
+  signInWithEmail: (email: string, password: string) => Promise<{ error: any | null; requireVerification?: boolean }>;
   signUpWithEmail: (
     email: string,
     password: string,
     name: string,
     preferredCity?: string
   ) => Promise<{ data: any | null; error: any | null; requireVerification?: boolean }>;
+  verifyEmailCode: (email: string, otp: string) => Promise<{ data: any | null; error: any | null }>;
+  resendVerificationCode: (email: string) => Promise<{ error: any | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -50,11 +52,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (data && !error) {
         setProfile(data as UserProfile);
       } else if (authUser) {
-        // Fallback profile
         const fallbackProfile: UserProfile = {
           id: userId,
           email: authUser.email || null,
-          name: authUser.profile?.name || authUser.email?.split("@")[0] || "지하탐험가",
+          name:
+            authUser.profile?.name ||
+            authUser.profile?.full_name ||
+            authUser.email?.split("@")[0] ||
+            "지하탐험가",
           avatar_url: authUser.profile?.avatar_url || null,
           provider: authUser.providers?.[0] || "email",
           preferred_city: "tokyo",
@@ -117,23 +122,64 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Google OAuth Login
   const signInWithGoogle = async (customRedirect?: string) => {
-    const origin = typeof window !== "undefined" ? window.location.origin : "";
-    const redirectTo = customRedirect || `${origin}/auth/callback`;
+    try {
+      const origin =
+        typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
+      const redirectTo = customRedirect || `${origin}/auth/callback`;
 
-    await insforge.auth.signInWithOAuth("google", {
-      redirectTo,
-      additionalParams: { prompt: "select_account" },
-    });
+      const { data, error } = await insforge.auth.signInWithOAuth("google", {
+        redirectTo,
+        additionalParams: { prompt: "select_account" },
+        skipBrowserRedirect: true,
+      });
+
+      if (error) {
+        return { error };
+      }
+
+      if (data?.url && typeof window !== "undefined") {
+        window.location.href = data.url;
+      }
+
+      return { error: null };
+    } catch (err: any) {
+      console.error("Google sign in error:", err);
+      return { error: err };
+    }
   };
 
   // LINE OAuth Login
   const signInWithLine = async (customRedirect?: string) => {
-    const origin = typeof window !== "undefined" ? window.location.origin : "";
-    const redirectTo = customRedirect || `${origin}/auth/callback`;
+    try {
+      const origin =
+        typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
+      const redirectTo = customRedirect || `${origin}/auth/callback`;
 
-    await insforge.auth.signInWithOAuth("line", {
-      redirectTo,
-    });
+      const { data, error } = await insforge.auth.signInWithOAuth("line", {
+        redirectTo,
+        skipBrowserRedirect: true,
+      });
+
+      if (error) {
+        return {
+          error: new Error(
+            "LINE 로그인은 현재 InsForge 대시보드 연동 준비 중입니다. Google 로그인 또는 이메일 간편 가입을 이용해 주세요!"
+          ),
+        };
+      }
+
+      if (data?.url && typeof window !== "undefined") {
+        window.location.href = data.url;
+      }
+
+      return { error: null };
+    } catch (err: any) {
+      return {
+        error: new Error(
+          "LINE 로그인은 현재 InsForge 대시보드 연동 준비 중입니다. Google 로그인 또는 이메일 간편 가입을 이용해 주세요!"
+        ),
+      };
+    }
   };
 
   // Email/Password Login
@@ -146,7 +192,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (error) {
-        return { error };
+        // Check if email requires verification
+        if (
+          error.message?.includes("not verified") ||
+          error.message?.includes("VERIFY") ||
+          error.error === "EMAIL_NOT_VERIFIED"
+        ) {
+          return { error, requireVerification: true };
+        }
+        return { error, requireVerification: false };
       }
 
       if (data?.user) {
@@ -154,9 +208,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await fetchProfile(data.user.id, data.user);
       }
 
-      return { error: null };
+      return { error: null, requireVerification: false };
     } catch (err: any) {
-      return { error: err };
+      return { error: err, requireVerification: false };
     } finally {
       setIsLoading(false);
     }
@@ -171,12 +225,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   ) => {
     setIsLoading(true);
     try {
-      const origin = typeof window !== "undefined" ? window.location.origin : "";
+      const origin =
+        typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
       const { data, error } = await insforge.auth.signUp({
         email,
         password,
         name,
-        redirectTo: `${origin}/login?verified=true`,
+        redirectTo: `${origin}/auth/callback`,
       });
 
       if (error) {
@@ -205,12 +260,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return {
         data,
         error: null,
-        requireVerification: data?.requireEmailVerification || false,
+        requireVerification: data?.requireEmailVerification !== false,
       };
     } catch (err: any) {
       return { data: null, error: err };
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Verify Email OTP Code
+  const verifyEmailCode = async (email: string, otp: string) => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await insforge.auth.verifyEmail({
+        email,
+        otp,
+      });
+
+      if (error) {
+        return { data: null, error };
+      }
+
+      if (data?.user) {
+        setUser(data.user);
+        await fetchProfile(data.user.id, data.user);
+      }
+
+      return { data, error: null };
+    } catch (err: any) {
+      return { data: null, error: err };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Resend Email OTP Code
+  const resendVerificationCode = async (email: string) => {
+    try {
+      const { data, error } = await insforge.auth.resendVerificationEmail({
+        email,
+      });
+      return { error };
+    } catch (err: any) {
+      return { error: err };
     }
   };
 
@@ -241,6 +334,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signInWithLine,
         signInWithEmail,
         signUpWithEmail,
+        verifyEmailCode,
+        resendVerificationCode,
         signOut,
         refreshProfile,
       }}

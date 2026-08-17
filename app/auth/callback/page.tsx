@@ -24,14 +24,23 @@ function AuthCallbackContent() {
 
         if (error) {
           setStatus("error");
-          setErrorMessage(errorDesc || error || "인증 중 오류가 발생했습니다.");
+          setErrorMessage(errorDesc || error || "소셜 인증 중 오류가 발생했습니다.");
           return;
         }
 
-        // Wait a short moment for InsForge SDK's automatic token exchange & session storage
+        // Check if there is an explicit insforge_code in the URL to exchange
+        const code = searchParams?.get("insforge_code") || searchParams?.get("code");
+        if (code) {
+          try {
+            await insforge.auth.exchangeOAuthCode(code);
+          } catch (exchangeErr) {
+            console.debug("Code exchange notice:", exchangeErr);
+          }
+        }
+
+        // Wait a short moment for session sync
         let userResult = await insforge.auth.getCurrentUser();
 
-        // If not immediately available, retry once after a short delay
         if (!userResult.data?.user) {
           await new Promise((resolve) => setTimeout(resolve, 800));
           userResult = await insforge.auth.getCurrentUser();
@@ -64,7 +73,6 @@ function AuthCallbackContent() {
             router.push("/");
           }, 800);
         } else {
-          // If no user found yet, redirect to login with fallback
           setStatus("success");
           router.push("/");
         }
@@ -72,7 +80,7 @@ function AuthCallbackContent() {
         console.error("OAuth callback error:", err);
         setStatus("error");
         setErrorMessage(
-          err?.message || "소셜 로그인 완료 처리 중 문제가 발생했습니다."
+          err?.message || "소셜 로그인 처리 중 문제가 발생했습니다."
         );
       }
     };
@@ -81,18 +89,18 @@ function AuthCallbackContent() {
   }, [router, searchParams]);
 
   return (
-    <div className="p-8 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-2xl max-w-sm w-full text-center backdrop-blur-xl">
-      <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center mx-auto mb-5 shadow-lg shadow-cyan-500/25">
-        <Footprints className="w-7 h-7 text-white transform -rotate-12" />
+    <div className="cute-card bg-white max-w-sm w-full p-8 text-center shadow-[4px_4px_0px_#18181b]">
+      <div className="w-14 h-14 rounded-2xl bg-amber-400 border-2 border-zinc-900 flex items-center justify-center mx-auto mb-4 shadow-[2px_2px_0px_#18181b]">
+        <Footprints className="w-7 h-7 text-zinc-950" />
       </div>
 
       {status === "loading" && (
         <div className="space-y-3">
-          <Loader2 className="w-8 h-8 text-cyan-400 animate-spin mx-auto" />
-          <h3 className="text-base font-bold text-white">
+          <Loader2 className="w-8 h-8 text-amber-500 animate-spin mx-auto" />
+          <h3 className="text-lg font-bold text-zinc-950 font-jua">
             소셜 로그인 인증 처리 중...
           </h3>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-zinc-600 font-medium">
             계정 정보를 안전하게 확인하고 있습니다. 잠시만 기다려 주세요.
           </p>
         </div>
@@ -100,9 +108,9 @@ function AuthCallbackContent() {
 
       {status === "success" && (
         <div className="space-y-3">
-          <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto" />
-          <h3 className="text-base font-bold text-white">로그인 성공!</h3>
-          <p className="text-xs text-slate-400">
+          <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto" />
+          <h3 className="text-lg font-bold text-zinc-950 font-jua">로그인 성공! ✨</h3>
+          <p className="text-xs text-zinc-600 font-medium">
             CHIKAMICHI 홈으로 이동 중입니다...
           </p>
         </div>
@@ -110,12 +118,12 @@ function AuthCallbackContent() {
 
       {status === "error" && (
         <div className="space-y-3">
-          <AlertCircle className="w-8 h-8 text-rose-400 mx-auto" />
-          <h3 className="text-base font-bold text-white">로그인 실패</h3>
-          <p className="text-xs text-rose-300">{errorMessage}</p>
+          <AlertCircle className="w-8 h-8 text-rose-600 mx-auto" />
+          <h3 className="text-lg font-bold text-zinc-950 font-jua">로그인 실패</h3>
+          <p className="text-xs text-rose-700 font-medium">{errorMessage}</p>
           <button
             onClick={() => router.push("/login")}
-            className="mt-4 w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-cyan-300 text-xs font-semibold rounded-xl transition border border-cyan-500/30"
+            className="mt-4 w-full cute-btn-primary py-2.5 px-4 text-xs font-bold"
           >
             로그인 페이지로 돌아가기
           </button>
@@ -127,12 +135,12 @@ function AuthCallbackContent() {
 
 export default function AuthCallbackPage() {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center px-4 relative underground-grid">
+    <div className="min-h-screen bg-[#FAF9F6] text-zinc-900 cute-dots flex flex-col items-center justify-center px-4 font-sans">
       <Suspense
         fallback={
-          <div className="p-8 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-2xl max-w-sm w-full text-center">
-            <Loader2 className="w-8 h-8 text-cyan-400 animate-spin mx-auto mb-3" />
-            <p className="text-xs text-slate-400">페이지를 불러오는 중입니다...</p>
+          <div className="cute-card bg-white max-w-sm w-full p-8 text-center">
+            <Loader2 className="w-8 h-8 text-amber-500 animate-spin mx-auto mb-3" />
+            <p className="text-xs text-zinc-500">인증 콜백 처리 중...</p>
           </div>
         }
       >
