@@ -70,11 +70,11 @@ function AuthCallbackContent() {
 
           setStatus("success");
           setTimeout(() => {
-            router.push("/");
+            router.push("/generate");
           }, 800);
         } else {
           setStatus("success");
-          router.push("/");
+          router.push("/generate");
         }
       } catch (err: any) {
         console.error("OAuth callback error:", err);

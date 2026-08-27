@@ -46,7 +46,7 @@ function LoginFormContent() {
   const [resendStatus, setResendStatus] = useState<string | null>(null);
 
   const verified = searchParams?.get("verified");
-  const returnTo = searchParams?.get("returnTo") || "/";
+  const returnTo = searchParams?.get("returnTo") || "/generate";
 
   useEffect(() => {
     if (user && !isLoading) {

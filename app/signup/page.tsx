@@ -51,7 +51,7 @@ function SignupFormContent() {
     null
   );
 
-  const returnTo = searchParams?.get("returnTo") || "/";
+  const returnTo = searchParams?.get("returnTo") || "/generate";
 
   useEffect(() => {
     if (user && !isLoading) {

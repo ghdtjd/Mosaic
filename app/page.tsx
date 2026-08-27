@@ -57,6 +57,7 @@ import {
   FileText,
   ThumbsUp,
   Bookmark,
+  Home as HomeIcon,
 } from "lucide-react";
 
 // Visual Step for Photo/Video Guide
@@ -468,6 +469,28 @@ export default function Home() {
   const [emailInput, setEmailInput] = useState("");
   const [subscribed, setSubscribed] = useState(false);
 
+  // Load custom routes from localStorage created in /generate
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("chikamichi_custom_routes");
+      if (saved) {
+        const parsed: RouteData[] = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setRoutes((prev) => {
+            const existingIds = new Set(prev.map((r) => r.id));
+            const newItems = parsed.filter((item) => !existingIds.has(item.id));
+            if (newItems.length > 0) {
+              return [...newItems, ...prev];
+            }
+            return prev;
+          });
+        }
+      }
+    } catch (e) {
+      console.warn("Could not load custom routes from storage:", e);
+    }
+  }, []);
+
   // Current active route object
   const currentRoute =
     routes.find((r) => r.id === selectedRouteId) || routes[0];
@@ -728,33 +751,44 @@ export default function Home() {
           </a>
         </nav>
 
-        {/* Right Nav: Upload Button & Auth */}
+        {/* Right Nav: Upload Button OR Logged-In User Profile */}
         <div className="flex items-center gap-2.5">
-          <button
-            onClick={() => setIsUploadModalOpen(true)}
-            className="cute-btn-primary px-3.5 py-2 text-xs sm:text-sm flex items-center gap-1.5"
-          >
-            <Plus className="w-4 h-4" />
-            <span>내 루트 다중 사진 등록</span>
-          </button>
-
           {user ? (
-            <div className="flex items-center gap-2 bg-white border-2 border-zinc-900 rounded-2xl px-2.5 py-1.5 shadow-[2px_2px_0px_#18181b]">
-              <div className="w-6 h-6 rounded-full bg-amber-300 border border-zinc-900 text-zinc-950 font-bold text-xs flex items-center justify-center">
-                {(profile?.name || user.email || "U")[0].toUpperCase()}
-              </div>
-              <span className="text-xs font-bold text-zinc-900 hidden sm:inline max-w-[80px] truncate">
-                {profile?.name || user.email?.split("@")[0]}
-              </span>
-              <button
-                onClick={() => signOut()}
-                title="로그아웃"
-                className="p-1 text-zinc-500 hover:text-red-500 transition"
+            /* Logged-In User Profile and Generate Studio Shortcut */
+            <div className="flex items-center gap-2">
+              <Link
+                href="/generate"
+                className="cute-btn-primary px-3 sm:px-3.5 py-2 text-xs sm:text-sm flex items-center gap-1.5"
               >
-                <LogOut className="w-3.5 h-3.5" />
-              </button>
+                <Plus className="w-4 h-4" />
+                <span className="hidden sm:inline">내 꿀루트 등록</span>
+                <span className="sm:hidden">등록</span>
+              </Link>
+
+              {/* My Profile Badge */}
+              <div className="flex items-center gap-2 bg-white border-2 border-zinc-900 rounded-2xl px-3 py-1.5 shadow-[2px_2px_0px_#18181b]">
+                <div className="w-6 h-6 rounded-full bg-amber-300 border border-zinc-900 text-zinc-950 font-bold text-xs flex items-center justify-center">
+                  {(profile?.name || user.email || "U")[0].toUpperCase()}
+                </div>
+                <div className="hidden sm:block text-left">
+                  <span className="text-xs font-bold text-zinc-900 block leading-tight max-w-[90px] truncate">
+                    {profile?.name || user.email?.split("@")[0]}
+                  </span>
+                  <span className="text-[10px] text-amber-700 font-bold">
+                    길잡이 탐험가
+                  </span>
+                </div>
+                <button
+                  onClick={() => signOut()}
+                  title="로그아웃"
+                  className="p-1 text-zinc-400 hover:text-red-500 transition ml-0.5"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
           ) : (
+            /* Guest Buttons */
             <div className="flex items-center gap-1.5">
               <Link
                 href="/login"
@@ -773,7 +807,49 @@ export default function Home() {
         </div>
       </header>
 
-      {/* 3. HERO SECTION */}
+      {/* 3. LOGGED-IN USER PROFILE DASHBOARD BANNER (로그인한 유저 전용 정보창) */}
+      {user && (
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6">
+          <div className="cute-card bg-amber-200/85 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-zinc-950 text-amber-300 flex items-center justify-center font-bold text-xl border-2 border-zinc-950 shadow-[2px_2px_0px_#18181b]">
+                {(profile?.name || user.email || "U")[0].toUpperCase()}
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-jua text-lg sm:text-xl text-zinc-950">
+                    {profile?.name || user.email?.split("@")[0]} 님의 길잡이 공간 🐾
+                  </h3>
+                  <span className="bg-zinc-950 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full font-mono">
+                    인증회원
+                  </span>
+                </div>
+                <p className="text-xs text-zinc-800 font-medium mt-0.5">
+                  관심 도시: <strong>{profile?.preferred_city === "osaka" ? "오사카" : profile?.preferred_city === "sapporo" ? "삿포로" : profile?.preferred_city === "fukuoka" ? "후쿠오카" : "도쿄"}</strong> • 내가 아는 지하 지름길을 사진으로 등록해 보세요!
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Link
+                href="/generate"
+                className="flex-1 sm:flex-initial cute-btn-primary px-4 py-2.5 text-xs font-bold flex items-center justify-center gap-1.5"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>새 꿀루트 작성 스튜디오</span>
+              </Link>
+              <button
+                onClick={() => signOut()}
+                className="cute-btn-secondary px-3 py-2.5 text-xs font-bold text-zinc-700 hover:text-red-600 bg-white"
+              >
+                로그아웃
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 4. HERO SECTION */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 pt-10 pb-12 text-center">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-100 border-2 border-zinc-900 text-xs font-bold text-zinc-900 mb-5 shadow-[2px_2px_0px_#18181b]">
           <ImagePlus className="w-4 h-4 text-amber-600" />
@@ -804,17 +880,17 @@ export default function Home() {
             <Camera className="w-5 h-5" />
             연속 사진 스텝 가이드 체험하기
           </a>
-          <button
-            onClick={() => setIsUploadModalOpen(true)}
+          <Link
+            href="/generate"
             className="cute-btn-secondary px-6 py-3.5 text-sm sm:text-base flex items-center gap-2"
           >
             <Plus className="w-5 h-5 text-amber-600" />
             나만의 코스 사진 여러 장 등록하기
-          </button>
+          </Link>
         </div>
       </section>
 
-      {/* 4. WEEKLY TOP UNDERGROUND ROUTES LEADERBOARD */}
+      {/* 5. WEEKLY TOP UNDERGROUND ROUTES LEADERBOARD */}
       <section id="leaderboard" className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
           <div>
@@ -959,7 +1035,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 5. VISUAL STEP-BY-STEP PHOTO & VIDEO GUIDE (출발부터 도착까지 다중 사진 뷰어) */}
+      {/* 6. VISUAL STEP-BY-STEP PHOTO & VIDEO GUIDE (출발부터 도착까지 다중 사진 뷰어) */}
       <section
         id="visual-guide"
         className="max-w-6xl mx-auto px-4 sm:px-6 py-12 scroll-mt-16"
@@ -1139,7 +1215,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 6. MULTI-PHOTO ROUTE CREATOR MODAL (사용자 여러 장 사진 & 설명 등록 폼) */}
+      {/* 7. QUICK MODAL FOR ROUTE CREATION */}
       {isUploadModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
           <div className="cute-card bg-white max-w-2xl w-full p-6 sm:p-8 max-h-[90vh] overflow-y-auto relative animate-in fade-in zoom-in-95">
@@ -1158,7 +1234,11 @@ export default function Home() {
             </div>
             <p className="text-xs text-zinc-600 mb-6">
               출발지부터 도착지까지 단계별로 사진을 첨부하고 설명을 작성해 주세요.
-              등록된 루트는 주간 랭킹에 올라가 좋아요(❤️)를 받을 수 있습니다!
+              전용 스튜디오 페이지(
+              <Link href="/generate" className="text-amber-700 underline font-bold">
+                /generate
+              </Link>
+              )에서도 등록할 수 있습니다!
             </p>
 
             <form onSubmit={handleCreateMultiPhotoRoute} className="space-y-6 text-xs">
@@ -1171,7 +1251,7 @@ export default function Home() {
 
                 <div>
                   <label className="block font-bold text-zinc-900 mb-1">
-                    루트 제목 (예: 신주쿠 서쪽 ➡️ 도쿄도청 무빙워크 직통길)
+                    루트 제목
                   </label>
                   <input
                     type="text"
@@ -1201,7 +1281,7 @@ export default function Home() {
 
                   <div>
                     <label className="block font-bold text-zinc-900 mb-1">
-                      출발지 (역/개찰구)
+                      출발지
                     </label>
                     <input
                       type="text"
@@ -1215,7 +1295,7 @@ export default function Home() {
 
                   <div>
                     <label className="block font-bold text-zinc-900 mb-1">
-                      도착지 (건물/출구)
+                      도착지
                     </label>
                     <input
                       type="text"
@@ -1234,7 +1314,7 @@ export default function Home() {
                 <div className="flex items-center justify-between">
                   <div className="font-jua text-base text-zinc-950 flex items-center gap-1.5">
                     <Camera className="w-4 h-4 text-cyan-600" />
-                    2. 출발 ➡️ 도착 단계별 사진 & 설명 ({editableSteps.length}개 등록 중)
+                    2. 단계별 사진 & 설명 ({editableSteps.length}개)
                   </div>
                   <button
                     type="button"
@@ -1257,7 +1337,7 @@ export default function Home() {
                           ? "🚩 STEP 1 (출발지)"
                           : idx === editableSteps.length - 1
                           ? `🎯 STEP ${idx + 1} (도착지)`
-                          : `🚶 STEP ${idx + 1} (경유지/분기점)`}
+                          : `🚶 STEP ${idx + 1} (경유지)`}
                       </span>
 
                       {editableSteps.length > 1 && (
@@ -1273,10 +1353,9 @@ export default function Home() {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {/* Photo Upload for this specific step */}
                       <div>
                         <label className="block font-bold text-zinc-900 mb-1">
-                          이 단계 현장 사진
+                          현장 사진
                         </label>
                         <div className="border-2 border-dashed border-zinc-400 hover:border-zinc-900 rounded-xl p-3 text-center bg-[#FAF9F6] transition cursor-pointer relative h-36 flex items-center justify-center">
                           <input
@@ -1310,11 +1389,10 @@ export default function Home() {
                         </div>
                       </div>
 
-                      {/* Step Details */}
                       <div className="space-y-2">
                         <div>
                           <label className="block font-bold text-zinc-900 mb-0.5">
-                            단계 제목 / 위치
+                            단계 명칭
                           </label>
                           <input
                             type="text"
@@ -1329,7 +1407,7 @@ export default function Home() {
 
                         <div>
                           <label className="block font-bold text-zinc-900 mb-0.5">
-                            눈에 띄는 랜드마크 / 표지판
+                            랜드마크 표지판
                           </label>
                           <input
                             type="text"
@@ -1337,14 +1415,14 @@ export default function Home() {
                             onChange={(e) =>
                               handleStepChange(step.id, "landmark", e.target.value)
                             }
-                            placeholder="예: 노란색 도쿄도청 표지판 & 분수대"
+                            placeholder="예: 노란색 도쿄도청 표지판"
                             className="w-full bg-[#FAF9F6] border-2 border-zinc-900 rounded-lg px-2.5 py-1.5 text-xs text-zinc-900 focus:outline-none focus:ring-2 focus:ring-amber-400"
                           />
                         </div>
 
                         <div>
                           <label className="block font-bold text-zinc-900 mb-0.5">
-                            통과 방법 & 꿀팁 설명
+                            통과 방법 설명
                           </label>
                           <textarea
                             rows={2}
@@ -1352,7 +1430,7 @@ export default function Home() {
                             onChange={(e) =>
                               handleStepChange(step.id, "description", e.target.value)
                             }
-                            placeholder="예: 개찰구 나와서 정면 오다큐 백화점 통로로 직진하세요."
+                            placeholder="예: 오다큐 백화점 통로로 직진하세요."
                             className="w-full bg-[#FAF9F6] border-2 border-zinc-900 rounded-lg px-2.5 py-1.5 text-xs text-zinc-900 focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none"
                           />
                         </div>
@@ -1360,29 +1438,6 @@ export default function Home() {
                     </div>
                   </div>
                 ))}
-
-                <button
-                  type="button"
-                  onClick={handleAddStep}
-                  className="w-full py-2.5 border-2 border-dashed border-zinc-900 rounded-2xl bg-amber-50 hover:bg-amber-100 text-zinc-950 font-bold flex items-center justify-center gap-1.5 transition"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>+ 사진 & 다음 경유지 단계 추가하기</span>
-                </button>
-              </div>
-
-              {/* Final Tip */}
-              <div>
-                <label className="block font-bold text-zinc-900 mb-1">
-                  전체 코스 핵심 꿀팁 요약
-                </label>
-                <textarea
-                  rows={2}
-                  value={newHighlightTip}
-                  onChange={(e) => setNewHighlightTip(e.target.value)}
-                  placeholder="예: 비 올 때 지상으로 안 나가고 무빙워크 타면 땀 한 방울 안 흘리고 8분 만에 갈 수 있어요!"
-                  className="w-full bg-[#FAF9F6] border-2 border-zinc-900 rounded-xl px-3 py-2 text-xs text-zinc-900 focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none"
-                />
               </div>
 
               {/* Submit Button */}
@@ -1391,15 +1446,13 @@ export default function Home() {
                 className="w-full cute-btn-primary py-3.5 text-sm font-bold flex items-center justify-center gap-2"
               >
                 <UploadCloud className="w-5 h-5" />
-                <span>다중 사진 루트 등록하고 랭커 도전하기! 🚀</span>
+                <span>루트 등록하고 랭킹 등록하기! 🚀</span>
               </button>
 
               {uploadSuccess && (
                 <div className="p-3.5 rounded-xl bg-emerald-100 border-2 border-zinc-900 text-emerald-950 font-bold text-xs flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>
-                    루트가 성공적으로 등록되었습니다! 사진 스텝 가이드에 반영됩니다.
-                  </span>
+                  <span>루트가 성공적으로 등록되었습니다!</span>
                 </div>
               )}
             </form>
@@ -1407,7 +1460,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* 7. INTERACTIVE SEQUENTIAL PHOTO LIGHTBOX (이전/다음 사진 연속 보기) */}
+      {/* 8. INTERACTIVE SEQUENTIAL PHOTO LIGHTBOX */}
       {activeLightboxIndex !== null && currentRoute.steps[activeLightboxIndex] && (
         <div
           onClick={() => setActiveLightboxIndex(null)}
@@ -1422,7 +1475,7 @@ export default function Home() {
               onClick={() => setActiveLightboxIndex(null)}
               className="absolute top-4 right-4 p-1.5 rounded-full border-2 border-zinc-900 bg-zinc-100 hover:bg-zinc-200 text-zinc-900 z-20"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
 
             {/* Step Counter Badge */}
@@ -1517,7 +1570,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* 8. WHY MULTI-PHOTO MATTERS */}
+      {/* 9. WHY MULTI-PHOTO MATTERS */}
       <section
         id="how-it-works"
         className="max-w-6xl mx-auto px-4 sm:px-6 py-14 border-t-2 border-zinc-900"
@@ -1574,7 +1627,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 9. FAQ ACCORDION */}
+      {/* 10. FAQ ACCORDION */}
       <section
         id="faq"
         className="max-w-4xl mx-auto px-4 sm:px-6 py-12 border-t-2 border-zinc-900"
@@ -1600,7 +1653,7 @@ export default function Home() {
             },
             {
               q: "스마트폰으로 현장에서 바로 사진 찍어 올릴 수 있나요?",
-              a: "네! 모바일 브라우저에서도 '내 루트 등록' 버튼을 누르면 스마트폰 카메라로 바로 촬영하거나 갤러리의 사진을 첨부하여 실시간으로 등록할 수 있습니다.",
+              a: "네! /generate 페이지에서 스마트폰 카메라로 바로 촬영하거나 갤러리의 사진을 첨부하여 실시간으로 등록할 수 있습니다.",
             },
           ].map((item, idx) => (
             <div key={idx} className="cute-card bg-white overflow-hidden">
@@ -1625,7 +1678,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 10. PRE-REGISTRATION CTA */}
+      {/* 11. PRE-REGISTRATION CTA */}
       <section className="max-w-4xl mx-auto px-4 sm:px-6 py-12">
         <div className="cute-card bg-amber-300 p-8 sm:p-12 text-center relative overflow-hidden">
           <div className="w-14 h-14 rounded-2xl bg-zinc-950 text-amber-300 flex items-center justify-center mx-auto mb-4 border-2 border-zinc-950 shadow-[3px_3px_0px_#18181b]">
@@ -1678,7 +1731,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 11. FOOTER */}
+      {/* 12. FOOTER */}
       <footer className="border-t-2 border-zinc-900 bg-white py-8 px-4 sm:px-6 text-xs text-zinc-600">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
@@ -1696,12 +1749,18 @@ export default function Home() {
             <a href="#visual-guide" className="hover:underline">
               사진 가이드
             </a>
-            <a href="#how-it-works" className="hover:underline">
-              이용 방법
-            </a>
-            <Link href="/login" className="hover:underline">
-              로그인
+            <Link href="/generate" className="hover:underline text-amber-700">
+              스튜디오(/generate)
             </Link>
+            {!user ? (
+              <Link href="/login" className="hover:underline">
+                로그인
+              </Link>
+            ) : (
+              <button onClick={() => signOut()} className="hover:underline text-red-600">
+                로그아웃
+              </button>
+            )}
           </div>
 
           <div className="text-zinc-500 text-[11px]">
