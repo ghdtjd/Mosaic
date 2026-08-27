@@ -8,24 +8,31 @@ import {
   Clock,
   Accessibility,
   Maximize2,
+  MapPin,
 } from "lucide-react";
 import type { RouteData } from "@/app/page";
 
 interface VisualGuideSectionProps {
   currentRoute: RouteData;
+  availableCityRoutes: RouteData[];
+  selectedRouteId: string;
+  onSelectRoute: (routeId: string) => void;
   onLikeRoute: (routeId: string, e: React.MouseEvent) => void;
   onOpenLightbox: (stepIndex: number) => void;
 }
 
 export function VisualGuideSection({
   currentRoute,
+  availableCityRoutes,
+  selectedRouteId,
+  onSelectRoute,
   onLikeRoute,
   onOpenLightbox,
 }: VisualGuideSectionProps) {
   return (
     <section
       id="visual-guide"
-      className="max-w-6xl mx-auto px-4 sm:px-6 py-12 scroll-mt-16"
+      className="max-w-6xl mx-auto px-4 sm:px-6 py-10 scroll-mt-16"
     >
       <div className="text-center mb-8">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-100 border-2 border-zinc-900 text-xs font-bold text-zinc-900 mb-2">
@@ -38,6 +45,28 @@ export function VisualGuideSection({
         <p className="text-xs sm:text-sm text-zinc-600 mt-1 max-w-xl mx-auto">
           출발지 ➡️ 중간 분기점 ➡️ 도착지까지 실제 현장 사진과 꿀팁을 확인하세요. (사진 클릭 시 전체화면 확대)
         </p>
+
+        {/* Quick route switcher among available routes in the filtered city */}
+        {availableCityRoutes.length > 1 && (
+          <div className="flex flex-wrap items-center justify-center gap-2 mt-5">
+            <span className="text-xs font-bold text-zinc-500 mr-1 flex items-center gap-1">
+              <MapPin className="w-3.5 h-3.5" /> 이 도시의 다른 루트:
+            </span>
+            {availableCityRoutes.map((r) => (
+              <button
+                key={r.id}
+                onClick={() => onSelectRoute(r.id)}
+                className={`px-3 py-1 rounded-xl text-xs font-bold transition border-2 border-zinc-900 ${
+                  r.id === selectedRouteId
+                    ? "bg-amber-300 text-zinc-950 shadow-[2px_2px_0px_#18181b]"
+                    : "bg-white text-zinc-700 hover:bg-zinc-100"
+                }`}
+              >
+                {r.title.length > 22 ? r.title.substring(0, 22) + "..." : r.title}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Main Visual Display Card */}

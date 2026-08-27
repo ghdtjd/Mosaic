@@ -6,6 +6,7 @@ import { useAuth } from "@/context/auth-context";
 // Landing Page Modular Section Components
 import { Header } from "@/components/landing/header";
 import { UserDashboardBanner } from "@/components/landing/user-dashboard-banner";
+import { CitySelectorBar } from "@/components/landing/city-selector-bar";
 import { HeroSection } from "@/components/landing/hero-section";
 import { LeaderboardSection } from "@/components/landing/leaderboard-section";
 import { VisualGuideSection } from "@/components/landing/visual-guide-section";
@@ -70,6 +71,7 @@ export interface EditableStep {
 }
 
 const INITIAL_ROUTES: RouteData[] = [
+  // 1. 도쿄 (Tokyo)
   {
     id: "shinjuku-tochomae",
     rank: 1,
@@ -86,7 +88,7 @@ const INITIAL_ROUTES: RouteData[] = [
     views: 8920,
     author: {
       name: "신주쿠마스터",
-      badge: "👑 1위 골드 길잡이",
+      badge: "👑 도쿄 1위 길잡이",
       avatarBg: "bg-amber-400",
     },
     tags: ["🌧️ 우천 100% 회피", "❄️ 에어컨 완비", "🛗 무빙워크 직통"],
@@ -139,6 +141,61 @@ const INITIAL_ROUTES: RouteData[] = [
       "지상으로 가면 신호등 3개와 폭우를 맞지만, 지하 무빙워크를 타면 땀 한 방울 안 흘리고 도착합니다!",
   },
   {
+    id: "tokyo-otemachi-flat",
+    rank: 3,
+    city: "tokyo",
+    cityName: "도쿄 · 도쿄역",
+    title: "도쿄역 마루노우치 ➡️ 오테마치 캐리어 무계단 평지길",
+    origin: "도쿄역 마루노우치 지하 중앙구",
+    destination: "오테마치 파이낸셜 오피스 타워",
+    duration: "7분",
+    distance: "550m",
+    rainShieldPercent: 100,
+    tempBenefit: "체감 -5°C",
+    likes: 945,
+    views: 5890,
+    author: {
+      name: "도쿄비즈니스맨",
+      badge: "🥈 도쿄 2위 길잡이",
+      avatarBg: "bg-emerald-400",
+    },
+    tags: ["🧳 캐리어 평지", "🏢 오피스 직결", "🌧️ 100% 실내"],
+    coverPhoto:
+      "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=1000&q=80",
+    steps: [
+      {
+        stepNumber: 1,
+        title: "출발: 마루노우치 지하 중앙 광장",
+        landmark: "신마루비루(新丸ビル) 지하 연결 입구",
+        description:
+          "붉은 벽돌 도쿄역사 지하에서 신마루빌딩 지하 통로로 단차 없이 바로 이어집니다.",
+        photoUrl:
+          "https://images.unsplash.com/photo-1508807526345-15e9b5f4eaff?auto=format&fit=crop&w=800&q=80",
+        photoAlt: "도쿄역 마루노우치 지하",
+        tip: "계단이 하나도 없는 완벽한 평지 구간입니다.",
+        indoor: true,
+        elevator: true,
+      },
+      {
+        stepNumber: 2,
+        title: "도착: 오테마치 지하 연결 와이드 보도",
+        landmark: "치요다선 환승 복도 & 오테모리 숲 광장",
+        description:
+          "폭 15m의 넓은 지하 회랑을 따라 오테마치 오피스 타운으로 쾌적하게 이동합니다.",
+        photoUrl:
+          "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80",
+        photoAlt: "오테마치 오피스 지하 통로",
+        tip: "출퇴근 시간에도 보행자 전용선이 넓어 캐리어 끌기 아주 편합니다.",
+        indoor: true,
+        elevator: true,
+      },
+    ],
+    highlightTip:
+      "대형 캐리어나 유모차를 끌고 갈 때 지상 턱이나 계단에 걸리지 않는 최적의 휠체어/캐리어 프리 패스입니다.",
+  },
+
+  // 2. 오사카 (Osaka)
+  {
     id: "umeda-diamor",
     rank: 2,
     city: "osaka",
@@ -154,7 +211,7 @@ const INITIAL_ROUTES: RouteData[] = [
     views: 7450,
     author: {
       name: "오사카길잡이",
-      badge: "🥈 2위 실버 길잡이",
+      badge: "👑 오사카 1위 길잡이",
       avatarBg: "bg-cyan-400",
     },
     tags: ["🌧️ 비 안 맞기", "🛍️ 백화점 직통", "❄️ 에어컨 빵빵"],
@@ -205,58 +262,45 @@ const INITIAL_ROUTES: RouteData[] = [
       "분수 광장 랜드마크 사진만 기억하면 악명 높은 우메다 던전도 3분 만에 정복할 수 있습니다.",
   },
   {
-    id: "tokyo-otemachi-flat",
-    rank: 3,
-    city: "tokyo",
-    cityName: "도쿄 · 도쿄역",
-    title: "도쿄역 마루노우치 ➡️ 오테마치 캐리어 무계단 평지길",
-    origin: "도쿄역 마루노우치 지하 중앙구",
-    destination: "오테마치 파이낸셜 오피스 타워",
-    duration: "7분",
-    distance: "550m",
+    id: "namba-walk-parks",
+    rank: 6,
+    city: "osaka",
+    cityName: "오사카 · 난바",
+    title: "난바역 ➡️ 난바워크 & 난바파크스 지하 논스톱 아케이드",
+    origin: "지하철 미도스지선 난바역 북쪽 개찰구",
+    destination: "난바파크스 쇼핑몰 B1F 가든 입구",
+    duration: "6분",
+    distance: "420m",
     rainShieldPercent: 100,
-    tempBenefit: "체감 -5°C",
-    likes: 945,
-    views: 5890,
+    tempBenefit: "체감 -6°C",
+    likes: 540,
+    views: 3120,
     author: {
-      name: "도쿄비즈니스맨",
-      badge: "🥉 3위 브론즈 길잡이",
-      avatarBg: "bg-emerald-400",
+      name: "난바마스터",
+      badge: "🥈 오사카 2위 길잡이",
+      avatarBg: "bg-sky-400",
     },
-    tags: ["🧳 캐리어 평지", "🏢 오피스 직결", "🌧️ 100% 실내"],
+    tags: ["🌧️ 우천 100% 회피", "🛍️ 쇼핑몰 직통"],
     coverPhoto:
-      "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=1000&q=80",
+      "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1000&q=80",
     steps: [
       {
         stepNumber: 1,
-        title: "출발: 마루노우치 지하 중앙 광장",
-        landmark: "신마루비루(新丸ビル) 지하 연결 입구",
-        description:
-          "붉은 벽돌 도쿄역사 지하에서 신마루빌딩 지하 통로로 단차 없이 바로 이어집니다.",
+        title: "출발: 난바역 북쪽 개찰구 나와 난바워크 진입",
+        landmark: "고래 광장(Kujira Park) 조형물",
+        description: "고래 광장을 지나 남쪽 연결로를 따라 직진합니다.",
         photoUrl:
-          "https://images.unsplash.com/photo-1508807526345-15e9b5f4eaff?auto=format&fit=crop&w=800&q=80",
-        photoAlt: "도쿄역 마루노우치 지하",
-        tip: "계단이 하나도 없는 완벽한 평지 구간입니다.",
-        indoor: true,
-        elevator: true,
-      },
-      {
-        stepNumber: 2,
-        title: "도착: 오테마치 지하 연결 와이드 보도",
-        landmark: "치요다선 환승 복도 & 오테모리 숲 광장",
-        description:
-          "폭 15m의 넓은 지하 회랑을 따라 오테마치 오피스 타운으로 쾌적하게 이동합니다.",
-        photoUrl:
-          "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80",
-        photoAlt: "오테마치 오피스 지하 통로",
-        tip: "출퇴근 시간에도 보행자 전용선이 넓어 캐리어 끌기 아주 편합니다.",
+          "https://images.unsplash.com/photo-1517649763962-0c623266ddc0?auto=format&fit=crop&w=800&q=80",
+        photoAlt: "난바워크 통로",
+        tip: "지상 도로 공사 구간을 완전히 우회할 수 있습니다.",
         indoor: true,
         elevator: true,
       },
     ],
-    highlightTip:
-      "대형 캐리어나 유모차를 끌고 갈 때 지상 턱이나 계단에 걸리지 않는 최적의 휠체어/캐리어 프리 패스입니다.",
+    highlightTip: "복잡한 난바 교차로 신호등을 전부 건너뛰는 지하 직결 루트!",
   },
+
+  // 3. 삿포로 (Sapporo)
   {
     id: "sapporo-chikaho-walk",
     rank: 4,
@@ -273,7 +317,7 @@ const INITIAL_ROUTES: RouteData[] = [
     views: 4320,
     author: {
       name: "북해도눈사람",
-      badge: "⭐ 삿포로 마스터",
+      badge: "👑 삿포로 1위 길잡이",
       avatarBg: "bg-sky-400",
     },
     tags: ["❄️ 폭설/빙판 제로", "🚶 1.9km 논스톱", "🎪 지하 이벤트홀"],
@@ -310,6 +354,8 @@ const INITIAL_ROUTES: RouteData[] = [
     highlightTip:
       "영하 12도 강추위와 미끄러운 빙판길 대신, 따뜻한 지하보도에서 음악 들으며 스스키노까지 가세요!",
   },
+
+  // 4. 후쿠오카 (Fukuoka)
   {
     id: "tenjin-shopping-route",
     rank: 5,
@@ -326,7 +372,7 @@ const INITIAL_ROUTES: RouteData[] = [
     views: 3890,
     author: {
       name: "하카타라멘러",
-      badge: "🍜 텐치카 전문가",
+      badge: "👑 후쿠오카 1위 길잡이",
       avatarBg: "bg-rose-400",
     },
     tags: ["🌧️ 우천 100% 회피", "🏛️ 유럽풍 거리", "🛍️ 백화점 4곳"],
@@ -349,6 +395,46 @@ const INITIAL_ROUTES: RouteData[] = [
     ],
     highlightTip:
       "비 오는 날 후쿠오카 쇼핑은 텐진 지하상가 하나면 백화점 4곳을 우산 없이 전부 둘러볼 수 있습니다.",
+  },
+
+  // 5. 나고야 (Nagoya)
+  {
+    id: "nagoya-sunroad",
+    rank: 7,
+    city: "nagoya",
+    cityName: "나고야 · 메이에키",
+    title: "나고야역 ➡️ 선로드 & 게이트타워 쾌속 지하보도",
+    origin: "JR 나고야역 사쿠라도리구 B1F",
+    destination: "JR 게이트타워 & 메이테츠 백화점 본점",
+    duration: "4분",
+    distance: "310m",
+    rainShieldPercent: 100,
+    tempBenefit: "체감 -6°C",
+    likes: 410,
+    views: 2450,
+    author: {
+      name: "나고야길라잡이",
+      badge: "👑 나고야 1위 길잡이",
+      avatarBg: "bg-purple-400",
+    },
+    tags: ["🌧️ 우천 회피", "🛍️ 게이트타워 직통"],
+    coverPhoto:
+      "https://images.unsplash.com/photo-1508807526345-15e9b5f4eaff?auto=format&fit=crop&w=1000&q=80",
+    steps: [
+      {
+        stepNumber: 1,
+        title: "출발: 나고야역 사쿠라도리구 B1F 연결부",
+        landmark: "선로드(Sunroad) 입구 시계탑",
+        description: "나고야에서 가장 오래된 지하가 선로드를 통해 이동합니다.",
+        photoUrl:
+          "https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&w=800&q=80",
+        photoAlt: "나고야 선로드 지하가",
+        tip: "지상 횡단보도를 거치지 않고 바로 게이트타워 엘리베이터로 이어집니다.",
+        indoor: true,
+        elevator: true,
+      },
+    ],
+    highlightTip: "복잡한 나고야역 광장 신호 대기 없이 3분 만에 게이트타워 도달!",
   },
 ];
 
@@ -414,6 +500,13 @@ export default function Home() {
   );
   const [uploadSuccess, setUploadSuccess] = useState(false);
 
+  // Auto-sync preferred city if user is logged in
+  useEffect(() => {
+    if (profile?.preferred_city && profile.preferred_city !== selectedCityFilter) {
+      setSelectedCityFilter(profile.preferred_city);
+    }
+  }, [profile?.preferred_city]);
+
   // Load custom routes from localStorage created in /generate
   useEffect(() => {
     try {
@@ -436,17 +529,29 @@ export default function Home() {
     }
   }, []);
 
-  // Current active route object
-  const currentRoute =
-    routes.find((r) => r.id === selectedRouteId) || routes[0];
-
-  // Filtered preset routes
+  // Filtered routes according to selected city
   const filteredRoutes =
     selectedCityFilter === "all"
       ? routes
       : routes.filter((r) => r.city === selectedCityFilter);
 
-  // Handle Likes / Upvote
+  // Auto-adjust selected route when city changes
+  useEffect(() => {
+    if (filteredRoutes.length > 0) {
+      const currentInFiltered = filteredRoutes.some((r) => r.id === selectedRouteId);
+      if (!currentInFiltered) {
+        setSelectedRouteId(filteredRoutes[0].id);
+      }
+    }
+  }, [selectedCityFilter, filteredRoutes, selectedRouteId]);
+
+  // Current active route object
+  const currentRoute =
+    filteredRoutes.find((r) => r.id === selectedRouteId) ||
+    filteredRoutes[0] ||
+    routes[0];
+
+  // Handle Likes / Upvote with dynamic ranking update
   const handleLikeRoute = (routeId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setRoutes((prev) => {
@@ -576,6 +681,7 @@ export default function Home() {
 
     setRoutes([newRouteItem, ...routes]);
     setSelectedRouteId(newRouteItem.id);
+    setSelectedCityFilter(newCity);
     setUploadSuccess(true);
 
     setTimeout(() => {
@@ -611,7 +717,7 @@ export default function Home() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeLightboxIndex, currentRoute.steps.length]);
+  }, [activeLightboxIndex, currentRoute?.steps?.length]);
 
   return (
     <div className="relative min-h-screen bg-[#FAF9F6] text-zinc-900 cute-dots font-sans overflow-x-hidden selection:bg-amber-300 selection:text-zinc-950">
@@ -624,7 +730,13 @@ export default function Home() {
       {/* 3. Hero Section (Parallax Floating Showcase in Rounded Frame) */}
       <HeroSection />
 
-      {/* 4. Weekly Leaderboard Section */}
+      {/* 4. City Hub & Weather Status Selector Bar (도시별 분리 및 제한적 뷰 컨트롤러) */}
+      <CitySelectorBar
+        selectedCity={selectedCityFilter}
+        onSelectCity={(cityId) => setSelectedCityFilter(cityId)}
+      />
+
+      {/* 5. Weekly Leaderboard Section (도시별 독립 랭킹 & 전국 랭킹) */}
       <LeaderboardSection
         filteredRoutes={filteredRoutes}
         selectedRouteId={selectedRouteId}
@@ -638,32 +750,39 @@ export default function Home() {
         onLikeRoute={handleLikeRoute}
       />
 
-      {/* 5. Visual Step-by-Step Guide Section */}
-      <VisualGuideSection
-        currentRoute={currentRoute}
-        onLikeRoute={handleLikeRoute}
-        onOpenLightbox={(idx) => setActiveLightboxIndex(idx)}
-      />
+      {/* 6. Visual Step-by-Step Guide Section (선택 도시 루트 연동) */}
+      {currentRoute && (
+        <VisualGuideSection
+          currentRoute={currentRoute}
+          availableCityRoutes={filteredRoutes}
+          selectedRouteId={selectedRouteId}
+          onSelectRoute={(id) => setSelectedRouteId(id)}
+          onLikeRoute={handleLikeRoute}
+          onOpenLightbox={(idx) => setActiveLightboxIndex(idx)}
+        />
+      )}
 
-      {/* 6. Why Multi-Photo Visual Route Section */}
+      {/* 7. Why Multi-Photo Visual Route Section */}
       <WhySection />
 
-      {/* 7. FAQ Section */}
+      {/* 8. FAQ Section */}
       <FaqSection />
 
-      {/* 8. Mobile Pre-registration CTA Section */}
+      {/* 9. Mobile Pre-registration CTA Section */}
       <CtaSection />
 
-      {/* 9. Footer */}
+      {/* 10. Footer */}
       <Footer />
 
-      {/* 10. Modals */}
-      <LightboxModal
-        activeIndex={activeLightboxIndex}
-        currentRoute={currentRoute}
-        onClose={() => setActiveLightboxIndex(null)}
-        onSelectIndex={(idx) => setActiveLightboxIndex(idx)}
-      />
+      {/* 11. Modals */}
+      {currentRoute && (
+        <LightboxModal
+          activeIndex={activeLightboxIndex}
+          currentRoute={currentRoute}
+          onClose={() => setActiveLightboxIndex(null)}
+          onSelectIndex={(idx) => setActiveLightboxIndex(idx)}
+        />
+      )}
 
       <RouteCreateModal
         isOpen={isUploadModalOpen}
