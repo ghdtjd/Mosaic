@@ -11,7 +11,7 @@ import {
   UploadCloud,
   CheckCircle2,
 } from "lucide-react";
-import type { EditableStep } from "@/app/page";
+import type { EditableStep } from "@/lib/routes-data";
 
 interface RouteCreateModalProps {
   isOpen: boolean;

@@ -1,7 +1,7 @@
 "use client";
 
 import { Crown, Heart, Camera, Play, ChevronRight, Trophy, MapPin } from "lucide-react";
-import type { RouteData } from "@/app/page";
+import type { RouteData } from "@/lib/routes-data";
 import { CITIES_DATA } from "@/components/landing/city-selector-bar";
 
 interface LeaderboardSectionProps {

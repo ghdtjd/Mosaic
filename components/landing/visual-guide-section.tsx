@@ -10,7 +10,7 @@ import {
   Maximize2,
   MapPin,
 } from "lucide-react";
-import type { RouteData } from "@/app/page";
+import type { RouteData, VisualStep } from "@/lib/routes-data";
 
 interface VisualGuideSectionProps {
   currentRoute: RouteData;
@@ -163,7 +163,7 @@ export function VisualGuideSection({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {currentRoute.steps.map((step, idx) => (
+            {currentRoute.steps.map((step: VisualStep, idx: number) => (
               <div
                 key={idx}
                 onClick={() => onOpenLightbox(idx)}

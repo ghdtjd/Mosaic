@@ -11,6 +11,7 @@ import {
   LogOut,
   CloudRain,
   Sun,
+  MapPin,
 } from "lucide-react";
 
 interface HeaderProps {
@@ -27,21 +28,41 @@ export function Header({ onOpenUploadModal }: HeaderProps) {
         <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <span className="bg-amber-400 text-zinc-950 text-[10px] font-bold px-2 py-0.5 rounded-full">
-              NEW
+              4대 도시 오픈
             </span>
             <span className="font-medium text-zinc-200">
-              출발점부터 도착지까지! 단계별 다중 사진 & 랜드마크 설명 가이드 지원
+              도쿄 · 오사카 · 후쿠오카 · 삿포로 4대 거점 도시 전용 지름길 허브 오픈!
             </span>
           </div>
 
           <div className="flex items-center gap-3 text-zinc-300 text-[11px]">
-            <span className="flex items-center gap-1">
-              <CloudRain className="w-3.5 h-3.5 text-cyan-400" /> 도쿄 비 80% (우산 0% 모드)
-            </span>
-            <span className="hidden sm:inline text-zinc-600">|</span>
-            <span className="hidden sm:flex items-center gap-1">
-              <Sun className="w-3.5 h-3.5 text-amber-400" /> 오사카 34°C (에어컨 루트 추천)
-            </span>
+            <Link
+              href="/city/tokyo"
+              className="hover:text-amber-300 transition flex items-center gap-1"
+            >
+              <span>🗼 도쿄</span>
+            </Link>
+            <span className="text-zinc-600">·</span>
+            <Link
+              href="/city/osaka"
+              className="hover:text-amber-300 transition flex items-center gap-1"
+            >
+              <span>🏯 오사카</span>
+            </Link>
+            <span className="text-zinc-600">·</span>
+            <Link
+              href="/city/fukuoka"
+              className="hover:text-amber-300 transition flex items-center gap-1"
+            >
+              <span>🍜 후쿠오카</span>
+            </Link>
+            <span className="text-zinc-600">·</span>
+            <Link
+              href="/city/sapporo"
+              className="hover:text-amber-300 transition flex items-center gap-1"
+            >
+              <span>❄️ 삿포로</span>
+            </Link>
           </div>
         </div>
       </div>
@@ -63,37 +84,43 @@ export function Header({ onOpenUploadModal }: HeaderProps) {
                 </span>
               </div>
               <p className="text-[11px] text-zinc-600 font-medium">
-                출발~도착 다중 사진으로 쉽게 찾는 일본 지하 지름길
+                비·폭염·눈길 없는 일본 4대 도시 지하 지름길 내비게이션
               </p>
             </div>
           </Link>
         </div>
 
         {/* Center Nav Links */}
-        <nav className="hidden md:flex items-center gap-6 text-sm font-bold text-zinc-800">
-          <a
-            href="#leaderboard"
-            className="hover:text-amber-600 transition flex items-center gap-1.5"
+        <nav className="hidden md:flex items-center gap-5 text-sm font-bold text-zinc-800">
+          <Link
+            href="/city/tokyo"
+            className="hover:text-amber-600 transition flex items-center gap-1"
           >
-            <Trophy className="w-4 h-4 text-amber-500" />
-            주간 랭킹
-          </a>
-          <a
-            href="#visual-guide"
-            className="hover:text-amber-600 transition flex items-center gap-1.5"
+            <span>🗼 도쿄</span>
+          </Link>
+          <Link
+            href="/city/osaka"
+            className="hover:text-amber-600 transition flex items-center gap-1"
           >
-            <Camera className="w-4 h-4 text-cyan-600" />
-            사진 스텝 가이드
-          </a>
-          <a
-            href="#how-it-works"
-            className="hover:text-amber-600 transition flex items-center gap-1.5"
+            <span>🏯 오사카</span>
+          </Link>
+          <Link
+            href="/city/fukuoka"
+            className="hover:text-amber-600 transition flex items-center gap-1"
           >
-            <Sparkles className="w-4 h-4 text-purple-600" />
-            서비스 소개
-          </a>
-          <a href="#faq" className="hover:text-amber-600 transition">
-            FAQ
+            <span>🍜 후쿠오카</span>
+          </Link>
+          <Link
+            href="/city/sapporo"
+            className="hover:text-amber-600 transition flex items-center gap-1"
+          >
+            <span>❄️ 삿포로</span>
+          </Link>
+          <a
+            href="/#how-it-works"
+            className="hover:text-amber-600 transition flex items-center gap-1 text-zinc-500 font-normal"
+          >
+            소개
           </a>
         </nav>
 
@@ -107,8 +134,8 @@ export function Header({ onOpenUploadModal }: HeaderProps) {
                 className="cute-btn-primary px-3 sm:px-3.5 py-2 text-xs sm:text-sm flex items-center gap-1.5"
               >
                 <Plus className="w-4 h-4" />
-                <span className="hidden sm:inline">내 꿀루트 등록</span>
-                <span className="sm:hidden">등록</span>
+                <span className="hidden sm:inline">꿀루트 작성</span>
+                <span className="sm:hidden">작성</span>
               </Link>
 
               {/* My Profile Badge */}

@@ -121,11 +121,11 @@ export function HeroSection() {
           {/* Action CTA Buttons */}
           <div className="mt-8 flex flex-wrap justify-center items-center gap-3 w-full sm:w-auto">
             <a
-              href="#visual-guide"
+              href="#city-gateways"
               className="cute-btn-primary px-6 py-3.5 text-sm sm:text-base font-bold flex items-center justify-center gap-2 w-full sm:w-auto"
             >
-              <Camera className="w-5 h-5" />
-              <span>사진 스텝 가이드 체험하기</span>
+              <MapPin className="w-5 h-5" />
+              <span>4대 도시 지름길 선택하기</span>
             </a>
 
             <Link

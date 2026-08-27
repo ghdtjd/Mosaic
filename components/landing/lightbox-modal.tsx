@@ -1,7 +1,7 @@
 "use client";
 
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
-import type { RouteData } from "@/app/page";
+import type { RouteData, VisualStep } from "@/lib/routes-data";
 
 interface LightboxModalProps {
   activeIndex: number | null;
@@ -98,7 +98,7 @@ export function LightboxModal({
 
         {/* Thumbnail Strip Below */}
         <div className="flex items-center gap-2 mt-4 pt-3 border-t-2 border-zinc-100 overflow-x-auto">
-          {currentRoute.steps.map((s, idx) => (
+          {currentRoute.steps.map((s: VisualStep, idx: number) => (
             <div
               key={idx}
               onClick={() => onSelectIndex(idx)}
